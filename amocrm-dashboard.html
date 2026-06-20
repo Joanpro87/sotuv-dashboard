@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sotuv Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1c2333;
+    --ink-soft: #6b7280;
+    --line: #e8eaf0;
+    --indigo: #4338ca;
+    --indigo-soft: #ede9fe;
+    --amber: #f59e0b;
+    --amber-soft: #fef3c7;
+    --teal: #0d9488;
+    --teal-soft: #ccfbf1;
+    --rose: #e11d48;
+    --rose-soft: #ffe4e6;
+    --grad-1: #6366f1;
+    --grad-2: #4338ca;
+    --radius: 16px;
+    --shadow: 0 1px 2px rgba(28,35,51,0.04), 0 8px 24px -8px rgba(28,35,51,0.08);
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 28px;
+    min-height: 100vh;
+  }
+
+  .wrap{ max-width: 1280px; margin: 0 auto; }
+
+  /* Header */
+  .topbar{
+    display:flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .topbar h1{
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.01em;
+  }
+  .topbar .sub{
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+  .status{
+    display:flex; align-items:center; gap:8px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 7px 14px;
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+  .dot.err{ background:#ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
+  .dot.load{ background:#f59e0b; animation: pulse 1s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  /* KPI cards */
+  .kpis{
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .kpi{
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi .icon{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom: 12px;
+    font-size: 16px;
+  }
+  .kpi:nth-child(1) .icon{ background: var(--indigo-soft); color: var(--indigo); }
+  .kpi:nth-child(2) .icon{ background: var(--teal-soft); color: var(--teal); }
+  .kpi:nth-child(3) .icon{ background: var(--amber-soft); color: var(--amber); }
+  .kpi:nth-child(4) .icon{ background: var(--rose-soft); color: var(--rose); }
+
+  .kpi .label{ font-size: 12.5px; color: var(--ink-soft); margin-bottom: 4px; }
+  .kpi .value{ font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .kpi .delta{ font-size: 12px; font-weight: 600; margin-top: 6px; display:inline-flex; align-items:center; gap:4px; }
+  .delta.up{ color: #15803d; }
+  .delta.down{ color: #dc2626; }
+
+  /* Main grid */
+  .grid{
+    display:grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 16px;
+  }
+
+  .panel{
+    background: var(--panel);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+
+  .panel-head{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+  }
+  .panel-head h2{
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+  }
+  .panel-head .hint{ font-size: 12px; color: var(--ink-soft); }
+
+  .chart-box{ height: 290px; }
+
+  /* Table panel */
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th{
+    text-align: left;
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td{
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody tr:last-child td{ border-bottom: none; }
+  tbody tr:hover{ background: #fafbff; }
+  td.num{ text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .bar-cell{
+    display:flex; align-items:center; gap:8px;
+  }
+  .bar-cell .track{
+    flex:1; height: 6px; background: var(--line); border-radius: 4px; overflow:hidden;
+  }
+  .bar-cell .fill{
+    height:100%; border-radius: 4px;
+    background: linear-gradient(90deg, var(--grad-1), var(--grad-2));
+  }
+
+  .table-scroll{ max-height: 360px; overflow-y: auto; }
+
+  footer{
+    text-align:center;
+    color: var(--ink-soft);
+    font-size: 11.5px;
+    margin-top: 20px;
+  }
+
+  .empty, .error-msg{
+    padding: 40px 20px;
+    text-align:center;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
+  @media (max-width: 980px){
+    .kpis{ grid-template-columns: repeat(2,1fr); }
+    .grid{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px){
+    .kpis{ grid-template-columns: 1fr; }
+    body{ padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>Sotuv ko'rsatkichlari</h1>
+      <div class="sub" id="lastUpdated">Yuklanmoqda...</div>
+    </div>
+    <div class="status" id="statusPill">
+      <span class="dot load" id="statusDot"></span>
+      <span id="statusText">Ulanmoqda</span>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpiRow">
+    <div class="kpi">
+      <div class="icon">&#9650;</div>
+      <div class="label">Jami summa</div>
+      <div class="value" id="kpiTotal">—</div>
+    </div>
+    <div class="kpi">
+      <div class="icon">&#9776;</div>
+      <div class="label">Jami soni</div>
+      <div class="value" id="kpiCount">—</div>
+    </div>
+    <div class="kpi">
+      <div class="icon">&#9650;</div>
+      <div class="label">O'rtacha (1 ta uchun)</div>
+      <div class="value" id="kpiAvg">—</div>
+    </div>
+    <div class="kpi">
+      <div class="icon">&#9733;</div>
+      <div class="label">Top sotuvchi</div>
+      <div class="value" id="kpiMax">—</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Taqqoslash diagrammasi</h2>
+        <span class="hint" id="chartHint">Google Sheets'dan</span>
+      </div>
+      <div class="chart-box">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Batafsil jadval</h2>
+        <span class="hint" id="rowsHint"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="dataTable">
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="tableBody">
+            <tr><td class="empty">Ma'lumot yuklanmoqda...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>Google Sheets bilan avtomatik sinxronlangan &middot; har <span id="refreshSec">60</span> soniyada yangilanadi</footer>
+
+</div>
+
+<script>
+/* =========================================================
+   SOZLAMA: Google Sheets linkini shu yerga qo'ying
+   Variant A: oddiy "Sheet ID" (URL'dagi /d/ va /edit orasidagi qism)
+   Variant B: to'liq /edit yoki /pub linkning o'zi — skript o'zi ID'ni ajratib oladi
+   ========================================================= */
+const SHEET_SOURCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTJWlN_NFw4D35l6yGYhM7rfTjZiml0_OUg7GUNg9_J3OmhDoJcL0-RAUyuMZS8THvAhjjA1aZk5Ewl/pub?gid=0&single=true&output=csv";
+const SHEET_GID = "0"; // varaq (tab) raqami, odatda 0
+
+// Manbadan to'g'ridan-to'g'ri ishlatiladigan CSV URL (pub link CORS bilan ishlaydi)
+const SHEET_CSV_URL = SHEET_SOURCE;
+
+function buildCandidateUrls(source, gid){
+  const urls = [];
+  // Agar bu publish-CSV link bo'lsa, o'zini birinchi urinish sifatida qo'shamiz
+  if(source.includes('output=csv') || source.includes('/pub')){
+    urls.push(source);
+  }
+  // Edit linkdan oddiy Sheet ID ajratib olish (gviz fallback uchun)
+  const idMatch = source.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if(idMatch && !source.includes('/d/e/')){
+    const id = idMatch[1];
+    urls.push(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`);
+    urls.push(`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`);
+  }
+  return urls.length ? urls : [source];
+}
+
+const REFRESH_INTERVAL_MS = 60000; // 60 soniya
+document.getElementById('refreshSec').textContent = REFRESH_INTERVAL_MS/1000;
+
+let chartInstance = null;
+
+// ---------- DEMO MA'LUMOT (link ulanmaguncha shu ko'rsatiladi) ----------
+// Ustunlar: Sana, Soni, Summa, Sotuvchi
+const DEMO_CSV = `Sana,Soni,Summa,Sotuvchi
+2026-06-20,11,22500000,Farangiz
+2026-06-20,0,0,Boxodir
+2026-06-19,8,16800000,Farangiz
+2026-06-19,5,10200000,Boxodir
+2026-06-18,9,19100000,Farangiz
+2026-06-18,6,12400000,Boxodir`;
+
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/).filter(l => l.length);
+  const headers = lines[0].split(',').map(h => h.trim());
+  const rows = lines.slice(1).map(line => {
+    // oddiy CSV split (vergul ichida qo'shtirnoq bo'lmasa yetarli)
+    const cells = line.split(',').map(c => c.trim().replace(/^"|"$/g,''));
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = cells[i] !== undefined ? cells[i] : '');
+    return obj;
+  });
+  return { headers, rows };
+}
+
+function isNumericColumn(rows, key){
+  return rows.every(r => r[key] === '' || !isNaN(parseFloat(r[key].toString().replace(/[, ]/g,''))));
+}
+
+function toNumber(v){
+  if (v === undefined || v === null || v === '') return 0;
+  const n = parseFloat(v.toString().replace(/[, ]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+function formatNumber(n){
+  return new Intl.NumberFormat('uz-UZ').format(Math.round(n));
+}
+
+function renderDashboard(headers, rows){
+  if(!rows.length){
+    document.getElementById('tableBody').innerHTML = '<tr><td class="empty">Jadvalda ma\'lumot topilmadi</td></tr>';
+    return;
+  }
+
+  // Bizning ustunlar: Sana, Soni, Summa, Sotuvchi
+  const dateKey = headers.find(h => /sana/i.test(h)) || headers[0];
+  const countKey = headers.find(h => /soni/i.test(h)) || headers[1];
+  const sumKey = headers.find(h => /summa/i.test(h)) || headers[2];
+  const sellerKey = headers.find(h => /sotuvchi/i.test(h)) || headers[3];
+
+  // ---- KPI hisoblash (umumiy, barcha qatorlar bo'yicha) ----
+  const sumValues = rows.map(r => toNumber(r[sumKey]));
+  const countValues = rows.map(r => toNumber(r[countKey]));
+  const totalSum = sumValues.reduce((a,b)=>a+b,0);
+  const totalCount = countValues.reduce((a,b)=>a+b,0);
+  const avgPerDeal = totalCount ? totalSum / totalCount : 0;
+
+  // ---- Sotuvchi bo'yicha guruhlash ----
+  const bySeller = {};
+  rows.forEach(r => {
+    const name = r[sellerKey] || 'Noma\'lum';
+    if(!bySeller[name]) bySeller[name] = { soni: 0, summa: 0 };
+    bySeller[name].soni += toNumber(r[countKey]);
+    bySeller[name].summa += toNumber(r[sumKey]);
+  });
+  const sellerNames = Object.keys(bySeller);
+  const sellerSums = sellerNames.map(n => bySeller[n].summa);
+  const maxSellerSum = Math.max(...sellerSums, 0);
+  const topIdx = sellerSums.indexOf(maxSellerSum);
+  const topSeller = sellerNames[topIdx];
+
+  document.getElementById('kpiTotal').textContent = formatNumber(totalSum);
+  document.getElementById('kpiCount').textContent = formatNumber(totalCount);
+  document.getElementById('kpiAvg').textContent = formatNumber(avgPerDeal);
+  document.getElementById('kpiMax').textContent = topSeller ? (topSeller + ' · ' + formatNumber(maxSellerSum)) : '—';
+
+  // ---- Bar chart: Sotuvchi bo'yicha Summa ----
+  const ctx = document.getElementById('barChart').getContext('2d');
+  const gradient = ctx.createLinearGradient(0,0,0,290);
+  gradient.addColorStop(0, '#6366f1');
+  gradient.addColorStop(1, '#4338ca');
+
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sellerNames,
+      datasets: [{
+        label: 'Summa',
+        data: sellerSums,
+        backgroundColor: gradient,
+        borderRadius: 8,
+        maxBarThickness: 56,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1c2333',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => ' ' + formatNumber(ctx.parsed.y) + ' so\'m'
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#e8eaf0' },
+          ticks: { color: '#6b7280', font: { size: 11 }, callback: (v) => formatNumber(v) }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#6b7280', font: { size: 11 } }
+        }
+      }
+    }
+  });
+
+  document.getElementById('chartHint').textContent = 'Sotuvchi bo\'yicha summa';
+
+  // ---- Jadval: xom ma'lumot, eng so'nggi sanalar tepada ----
+  const sortedRows = [...rows].sort((a,b) => {
+    const da = new Date(a[dateKey]), db = new Date(b[dateKey]);
+    if (isNaN(da) || isNaN(db)) return 0;
+    return db - da;
+  });
+
+  const theadRow = document.getElementById('tableHead');
+  theadRow.innerHTML = `<th>${dateKey}</th><th>${sellerKey}</th><th>${countKey}</th><th>${sumKey}</th>`;
+
+  const maxSumRow = Math.max(...sumValues, 1);
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = sortedRows.map(r => {
+    const v = toNumber(r[sumKey]);
+    const pct = Math.max(4, (v/maxSumRow)*100);
+    return `<tr>
+      <td>${r[dateKey]}</td>
+      <td>${r[sellerKey]}</td>
+      <td class="num">${formatNumber(toNumber(r[countKey]))}</td>
+      <td class="num">
+        <div class="bar-cell">
+          <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+          <span>${formatNumber(v)}</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rowsHint').textContent = rows.length + ' qator';
+}
+
+function setStatus(state, text){
+  const dot = document.getElementById('statusDot');
+  const label = document.getElementById('statusText');
+  dot.className = 'dot' + (state === 'ok' ? '' : state === 'err' ? ' err' : ' load');
+  label.textContent = text;
+}
+
+async function tryFetch(url, signal){
+  const res = await fetch(url, { signal, cache: 'no-store', redirect: 'follow' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const text = await res.text();
+  if(!text || text.trim().length === 0) throw new Error('Bo\'sh javob');
+  if(text.trim().startsWith('<')) throw new Error('HTML qaytdi, CSV emas');
+  return text;
+}
+
+async function loadData(){
+  const usingDemo = !SHEET_CSV_URL || SHEET_CSV_URL.indexOf('PASTE_YOUR') === 0;
+
+  if(usingDemo){
+    setStatus('err', "Sheets ulanmagan — namuna ma'lumot");
+    const { headers, rows } = parseCSV(DEMO_CSV);
+    renderDashboard(headers, rows);
+    document.getElementById('lastUpdated').textContent = "Demo rejim — pastdagi qatordan o'z CSV linkingizni qo'ying";
+    return;
+  }
+
+  setStatus('load', 'Yangilanmoqda...');
+
+  const sep0 = SHEET_CSV_URL.includes('?') ? '&' : '?';
+  const baseUrls = buildCandidateUrls(SHEET_CSV_URL, SHEET_GID);
+  const urlsToTry = baseUrls.map(u => u + (u.includes('?') ? '&' : '?') + 'cachebust=' + Date.now());
+
+  let lastError = null;
+  for(const url of urlsToTry){
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    try{
+      const text = await tryFetch(url, controller.signal);
+      clearTimeout(timeoutId);
+      const { headers, rows } = parseCSV(text);
+      renderDashboard(headers, rows);
+      setStatus('ok', 'Ulangan');
+      document.getElementById('lastUpdated').textContent = 'Oxirgi yangilanish: ' + new Date().toLocaleTimeString('uz-UZ');
+      return;
+    }catch(err){
+      clearTimeout(timeoutId);
+      lastError = err;
+      console.error('Urinish muvaffaqiyatsiz:', url, err);
+    }
+  }
+
+  // Hamma urinish muvaffaqiyatsiz bo'lsa
+  console.error('Sheets fetch xatosi:', lastError);
+  setStatus('err', 'Xatolik: ' + (lastError && lastError.message ? lastError.message : 'ulanmadi'));
+  document.getElementById('lastUpdated').textContent = "Ulanish muvaffaqiyatsiz — quyida namuna ma'lumot ko'rsatilmoqda";
+  const { headers, rows } = parseCSV(DEMO_CSV);
+  renderDashboard(headers, rows);
+}
+
+loadData();
+setInterval(loadData, REFRESH_INTERVAL_MS);
+</script>
+
+</body>
+</html>
