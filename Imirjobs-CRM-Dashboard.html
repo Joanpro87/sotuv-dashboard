@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imirjobs — CRM Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f6f8fc;
+  --card:#ffffff;
+  --border:#e7ecf5;
+  --border2:#d5dded;
+  --text:#111629;
+  --text2:#5a6684;
+  --text3:#96a2bf;
+  --indigo:#5a5df0;
+  --indigo-l:#eeeffe;
+  --green:#00b87c;
+  --green-l:#e2fbf2;
+  --amber:#f5a524;
+  --amber-l:#fff5e4;
+  --rose:#f04870;
+  --rose-l:#ffe9ef;
+  --violet:#9b5ef5;
+  --violet-l:#f5edff;
+  --cyan:#00b8d4;
+  --radius:16px;
+  --sh-sm:0 1px 3px rgba(17,22,41,.04);
+  --sh:0 2px 14px rgba(17,22,41,.06);
+  --sh-lg:0 10px 36px rgba(17,22,41,.11);
+}
+[data-theme="dark"]{
+  --bg:#0a0d14;
+  --card:#111520;
+  --border:#1e2540;
+  --border2:#252d45;
+  --text:#e8ecf5;
+  --text2:#7b87a8;
+  --text3:#4a5370;
+  --indigo:#6c7fff;
+  --indigo-l:#1a1d3a;
+  --green:#00e5a0;
+  --green-l:#0a2e22;
+  --amber:#ffb830;
+  --amber-l:#2a1f0a;
+  --rose:#ff4f7b;
+  --rose-l:#2a1010;
+  --violet-l:#1e1a3a;
+  --sh-sm:0 1px 3px rgba(0,0,0,0.3);
+  --sh:0 2px 12px rgba(0,0,0,0.4);
+  --sh-lg:0 8px 32px rgba(0,0,0,0.5);
+}
+[data-theme="dark"] input[type="date"]{color-scheme:dark;}
+[data-theme="dark"] .kpi-shine{opacity:0.06;}
+[data-theme="dark"] table thead th{background:#111520;}
+[data-theme="dark"] .table-hd{background:rgba(8,12,28,0.8);}
+[data-theme="dark"] .trow:hover{background:rgba(108,127,255,0.06);}
+[data-theme="dark"] #periodPicker{background:var(--card) !important;border-color:var(--border) !important;}
+[data-theme="dark"] #periodPicker input{color:var(--text) !important;}
+[data-theme="dark"] #monthPicker{background:var(--card) !important;border-color:var(--border) !important;}
+[data-theme="dark"] #monthPicker input{color:var(--text) !important;}
+body{
+  font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;padding:30px 26px;font-size:14px;line-height:1.55;
+  position:relative;overflow-x:hidden;
+}
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.wrap{position:relative;z-index:1;max-width:1340px;margin:0 auto;}
+
+@keyframes riseIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.anim{opacity:0;animation:riseIn .6s cubic-bezier(.16,1,.3,1) forwards;}
+.d1{animation-delay:.04s}.d2{animation-delay:.10s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}
+.d5{animation-delay:.28s}.d6{animation-delay:.34s}.d7{animation-delay:.40s}.d8{animation-delay:.46s}
+.d9{animation-delay:.52s}.d10{animation-delay:.58s}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:16px;flex-wrap:wrap;}
+.logo{display:flex;align-items:center;gap:13px;}
+.logo-mark{
+  width:44px;height:44px;background:linear-gradient(135deg,var(--indigo),var(--violet));
+  border-radius:13px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#fff;
+  box-shadow:0 5px 18px rgba(90,93,240,.34);position:relative;overflow:hidden;
+}
+.logo-mark::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:linear-gradient(45deg,transparent,rgba(255,255,255,.4),transparent);animation:shine 3.5s infinite;}
+@keyframes shine{0%{transform:translateX(-100%) rotate(45deg);}100%{transform:translateX(100%) rotate(45deg);}}
+.logo h1{font-size:20px;font-weight:800;letter-spacing:-.035em;}
+.logo h1 span{color:var(--text3);font-weight:500;}
+.subtitle{font-size:11.5px;color:var(--text3);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.tabs{display:flex;gap:3px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px;box-shadow:var(--sh-sm);}
+.tab{padding:6px 16px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--text3);cursor:pointer;transition:all .18s;user-select:none;}
+.tab.active{background:var(--indigo);color:#fff;box-shadow:0 3px 10px rgba(90,93,240,.32);}
+.tab:hover:not(.active){color:var(--text2);background:var(--bg);}
+.pill{display:flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--border);
+  border-radius:999px;padding:7px 15px;font-size:12px;color:var(--text2);font-weight:500;box-shadow:var(--sh-sm);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);position:relative;}
+.dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:inherit;opacity:.3;animation:ring 2s infinite;}
+@keyframes ring{0%{transform:scale(.7);opacity:.5;}100%{transform:scale(1.8);opacity:0;}}
+.dot.err{background:var(--rose);}.dot.load{background:var(--amber);}
+
+/* Xato banner va bo'sh holat */
+#errorBanner{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  background:#fff0f0;border:1px solid #ffd2d2;color:#b3232f;border-radius:14px;
+  padding:14px 18px;margin-bottom:16px;font-size:13.5px;font-weight:600;}
+[data-theme="dark"] #errorBanner{background:#3a1414;border-color:#5a1f1f;color:#ff8a8a;}
+#errorBanner button{background:#b3232f;color:#fff;border:none;border-radius:9px;padding:8px 16px;
+  font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+#errorBanner button:hover{opacity:.85;}
+.empty-state{padding:40px 20px;text-align:center;color:var(--text3);font-size:13px;}
+.empty-state .es-icon{font-size:28px;margin-bottom:8px;opacity:.5;}
+
+/* PAGE NAV (Sotuv / Qo'ng'iroqlar) */
+.pagenav{display:flex;gap:9px;margin-bottom:18px;}
+.pagetab{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;
+  color:var(--text2);cursor:pointer;background:var(--card);border:1px solid var(--border);box-shadow:var(--sh-sm);
+  transition:all .18s;user-select:none;}
+.pagetab .pt-ic{font-size:14px;}
+.pagetab .pt-badge{margin-left:2px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;
+  background:var(--bg);color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.pagetab.active{background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;border-color:transparent;
+  box-shadow:0 5px 16px rgba(90,93,240,.32);}
+.pagetab.active .pt-badge{background:rgba(255,255,255,.22);color:#fff;}
+.pagetab:hover:not(.active){color:var(--text);border-color:var(--border2);}
+
+/* Calls table has 4 columns instead of 5 */
+#callsTableCard .table-hd,#callsTableCard .trow{grid-template-columns:1fr 90px 120px 130px;}
+@media(max-width:700px){#callsTableCard .table-hd,#callsTableCard .trow{grid-template-columns:1fr 60px 90px 100px;}}
+
+/* Recent calls list */
+.callitem{border:1px solid var(--border);border-radius:12px;padding:13px 15px;transition:border-color .15s,background .15s;
+  opacity:0;animation:riseIn .4s cubic-bezier(.16,1,.3,1) forwards;}
+.callitem:hover{border-color:var(--border2);background:#fafbfe;}
+[data-theme="dark"] .callitem:hover{background:rgba(108,127,255,0.05);}
+.callitem-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px;flex-wrap:wrap;}
+.callitem-who{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.callitem-who .cw-op{color:var(--indigo);}
+.callitem-who .cw-sep{color:var(--text3);font-weight:400;}
+.callitem-meta{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+.callitem-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
+.badge{font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+.callitem-summary{font-size:12.5px;color:var(--text2);line-height:1.55;white-space:pre-line;}
+.callitem-summary b{color:var(--text);font-weight:600;}
+.callitem-link{font-size:11.5px;font-weight:700;color:var(--indigo);text-decoration:none;margin-top:8px;
+  background:none;border:none;padding:0;font-family:'Inter',sans-serif;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;}
+.callitem-link:hover{text-decoration:underline;}
+.callitem-audio{display:none;margin-top:8px;}
+.callitem-audio audio{width:100%;height:36px;}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;}
+.kpis-mini{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:14px;}
+.kpi-mini{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+  box-shadow:var(--sh-sm);display:flex;align-items:center;gap:12px;opacity:0;animation:riseIn .5s cubic-bezier(.16,1,.3,1) forwards;}
+.km-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.km-val{font-size:19px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;color:var(--text);}
+.km-lbl{font-size:11px;color:var(--text3);font-weight:600;margin-top:1px;}
+.kpi-mini.clickable{cursor:pointer;transition:transform .18s,box-shadow .18s,border-color .18s;}
+.kpi-mini.clickable:hover{transform:translateY(-3px);box-shadow:var(--sh-lg);border-color:var(--border2);}
+.kpi-mini.filter-active,.kpi.filter-active{border-color:var(--indigo);box-shadow:0 0 0 2px var(--indigo-l);}
+.filter-chip{display:inline-flex;align-items:center;gap:8px;background:var(--indigo-l);color:var(--indigo);
+  font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;}
+.filter-chip button{background:none;border:none;color:var(--indigo);font-weight:800;cursor:pointer;font-size:14px;
+  padding:0;line-height:1;}
+@media(max-width:1250px){.kpis-mini{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.kpis-mini{grid-template-columns:repeat(2,1fr);gap:8px;}.kpi-mini{padding:10px 8px;flex-direction:column;text-align:center;gap:5px;}.km-val{font-size:15px;}.km-lbl{font-size:9px;}.km-ic{width:26px;height:26px;font-size:12px;}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--sh);position:relative;overflow:hidden;
+  transition:transform .25s cubic-bezier(.16,1,.3,1),box-shadow .25s;}
+.kpi.clickable{cursor:pointer;}
+.kpi:hover{transform:translateY(-4px);box-shadow:var(--sh-lg);}
+.kpi-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;margin-bottom:12px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);}
+.kpi:hover .kpi-icon{transform:scale(1.12) rotate(-7deg);}
+.kpi-label{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:6px;}
+.kpi-value{font-size:28px;font-weight:800;letter-spacing:-.045em;line-height:1.05;}
+.kpi-value.sm{font-size:17px;margin-top:3px;line-height:1.25;}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:6px;}
+.kpi-shine{position:absolute;top:0;right:0;width:110px;height:110px;border-radius:50%;
+  filter:blur(38px);opacity:.14;transform:translate(35%,-35%);transition:opacity .3s;}
+.kpi:hover .kpi-shine{opacity:.26;}
+
+/* PANELS */
+.grid{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:14px;margin-bottom:14px;}
+.grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:14px;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--sh);transition:box-shadow .25s;}
+.panel:hover{box-shadow:var(--sh-lg);}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.panel-head h2{font-size:13.5px;font-weight:700;letter-spacing:-.015em;}
+.tag{font-size:11px;font-weight:600;color:var(--indigo);background:var(--indigo-l);
+  border-radius:7px;padding:4px 10px;font-family:'JetBrains Mono',monospace;}
+.tag.rose{color:var(--rose);background:var(--rose-l);}
+.chart-box{height:210px;}
+
+/* DONUT */
+.donut-wrap{position:relative;width:160px;height:160px;margin:0 auto 16px;}
+.donut-wrap canvas{width:160px!important;height:160px!important;}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.donut-center .big{font-size:26px;font-weight:800;letter-spacing:-.04em;}
+.donut-center .lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.legend{display:flex;flex-direction:column;gap:8px;}
+.legend-item{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;}
+.legend-left{display:flex;align-items:center;gap:9px;color:var(--text2);font-weight:500;}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.legend-val{font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px;}
+
+/* REASON BARS */
+.reasons{display:flex;flex-direction:column;gap:13px;}
+.reason{}
+.reason-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.reason-name{font-size:12.5px;font-weight:600;color:var(--text2);}
+.reason-val{font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace;}
+.reason-track{height:7px;border-radius:4px;background:#eef1f8;overflow:hidden;}
+.reason-fill{height:100%;border-radius:4px;transition:width .9s cubic-bezier(.16,1,.3,1);}
+.reason-pct{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:'JetBrains Mono',monospace;}
+
+/* TABLE */
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh);overflow:hidden;}
+.table-hd{display:grid;grid-template-columns:1fr 60px 120px 110px 120px;padding:14px 22px;border-bottom:1px solid var(--border);background:#fbfcfe;}
+.table-hd span{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+.table-hd span:not(:first-child){text-align:right;}
+.table-body{max-height:320px;overflow-y:auto;}
+.table-body::-webkit-scrollbar{width:5px;}
+.table-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:5px;}
+.trow{display:grid;grid-template-columns:1fr 60px 120px 110px 120px;padding:12px 22px;border-bottom:1px solid #f2f5fa;
+  align-items:center;transition:background .15s;opacity:0;animation:riseIn .4s cubic-bezier(.16,1,.3,1) forwards;}
+.trow:last-child{border-bottom:none;}
+.trow:hover{background:#fafbfe;}
+.tname{font-size:13.5px;font-weight:600;display:flex;align-items:center;}
+.tcount{font-size:13px;color:var(--text2);text-align:right;font-family:'JetBrains Mono',monospace;font-weight:600;}
+.tsum{font-size:13.5px;font-weight:700;text-align:right;font-family:'JetBrains Mono',monospace;}
+.tsum.pos{color:var(--green);}.tsum.zero{color:var(--text3);font-weight:500;}
+.rank{display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;
+  border-radius:8px;font-size:10.5px;font-weight:800;margin-right:11px;flex-shrink:0;}
+.r1{background:linear-gradient(135deg,#ffd93d,#f5a524);color:#fff;box-shadow:0 2px 8px rgba(245,165,36,.35);}
+.r2{background:linear-gradient(135deg,#c9d3e8,#9aa8c4);color:#fff;}
+.r3{background:linear-gradient(135deg,#ffb088,#e08050);color:#fff;}
+.rn{background:#f2f5fa;color:var(--text3);}
+.mini-bar{height:4px;border-radius:3px;background:#eef1f8;overflow:hidden;margin-top:5px;}
+.mini-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.16,1,.3,1);}
+
+footer{text-align:center;color:var(--text3);font-size:11.5px;margin-top:20px;padding-bottom:10px;}
+
+@media(max-width:1250px){.kpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:1000px){.grid{grid-template-columns:1fr 1fr;}.grid2{grid-template-columns:1fr;}}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr);}.grid{grid-template-columns:1fr;}body{padding:16px;}
+  .kpi{padding:14px 15px;}
+  .kpi-icon{width:30px;height:30px;font-size:14px;margin-bottom:8px;}
+  .kpi-label{font-size:9.5px;margin-bottom:4px;}
+  .kpi-value{font-size:21px;}
+  .kpi-value.sm{font-size:14px;}
+  .kpi-sub{font-size:10px;margin-top:4px;}
+  .table-hd,.trow{grid-template-columns:1fr 50px 90px 85px 90px;padding-left:14px;padding-right:14px;}}
+@media(max-width:420px){.kpis{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="wrap">
+
+  <div id="errorBanner" style="display:none;"></div>
+
+  <div class="header anim d1">
+    <div class="logo">
+      <div class="logo-mark">IJ</div>
+      <div>
+        <h1>Imirjobs <span>/ CRM Dashboard</span></h1>
+        <div class="subtitle" id="lastUpdated">Yuklanmoqda...</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="tabs">
+        <div class="tab" onclick="setTab(this,'yesterday')">Kecha</div>
+        <div class="tab" onclick="setTab(this,'today')">Bugun</div>
+        <div class="tab" onclick="setTab(this,'week')">Hafta</div>
+        <div class="tab active" onclick="setTab(this,'month')">Oy</div>
+        <div class="tab" onclick="setTab(this,'period')">&#128197; Period</div>
+      </div>
+      <div id="monthPicker" style="display:flex;align-items:center;background:#fff;border:1px solid var(--border);border-radius:999px;padding:6px 14px;box-shadow:var(--sh-sm);">
+        <input type="month" id="monthValue" onchange="applyMonth()" style="border:none;outline:none;font-family:Inter,sans-serif;font-size:12.5px;color:#12172b;background:transparent;cursor:pointer;">
+      </div>
+      <div id="periodPicker" style="display:none;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:6px 14px;box-shadow:var(--sh-sm);">
+        <input type="date" id="dateFrom" style="border:none;outline:none;font-family:Inter,sans-serif;font-size:12.5px;color:#12172b;background:transparent;cursor:pointer;">
+        <span style="color:#94a0bd;font-size:12px;">—</span>
+        <input type="date" id="dateTo" style="border:none;outline:none;font-family:Inter,sans-serif;font-size:12.5px;color:#12172b;background:transparent;cursor:pointer;">
+        <button onclick="applyPeriod()" style="background:#5b5ef5;color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">Ko'rsat</button>
+      </div>
+      <button id="themeToggle" onclick="toggleTheme()" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 12px;cursor:pointer;font-size:16px;line-height:1;box-shadow:var(--shadow-sm);transition:all .2s;">🌙</button>
+      <div class="pill"><span class="dot load" id="statusDot"></span><span id="statusText">Ulanmoqda</span></div>
+    </div>
+  </div>
+
+  <div class="pagenav anim d1">
+    <div class="pagetab active" onclick="setPage(this,'leads')"><span class="pt-ic">📊</span>Lidlar</div>
+    <div class="pagetab" onclick="setPage(this,'chats')"><span class="pt-ic">💬</span>AI Suhbatlar</div>
+    <div class="pagetab" onclick="setPage(this,'calls')"><span class="pt-ic">📞</span>Qo'ng'iroqlar</div>
+    <div class="pagetab" onclick="setPage(this,'pending')"><span class="pt-ic">⏳</span>Javob kutilmoqda</div>
+  </div>
+
+  <div id="page-leads">
+  <div id="leadsEmptyNote" class="empty-state" style="display:none;">
+    <div class="es-icon">📭</div>
+    Tanlangan davrda hech qanday lid topilmadi.
+  </div>
+  <div class="kpis">
+    <div class="kpi anim d2">
+      <div class="kpi-shine" style="background:var(--indigo)"></div>
+      <div class="kpi-icon" style="background:var(--indigo-l);color:var(--indigo)">💼</div>
+      <div class="kpi-label">Jami lidlar</div>
+      <div class="kpi-value" id="kpiTotal" style="color:var(--indigo)">—</div>
+      <div class="kpi-sub" id="kpiDate">bugun</div>
+      <div class="kpi-sub" id="kpiTotalDelta" style="margin-top:2px;"></div>
+    </div>
+    <div class="kpi anim d3">
+      <div class="kpi-shine" style="background:var(--green)"></div>
+      <div class="kpi-icon" style="background:var(--green-l);color:var(--green)">✅</div>
+      <div class="kpi-label">Joylashtirildi</div>
+      <div class="kpi-value" id="kpiCount" style="color:var(--green)">—</div>
+      <div class="kpi-sub">muvaffaqiyatli lid</div>
+    </div>
+    <div class="kpi anim d4">
+      <div class="kpi-shine" style="background:var(--rose)"></div>
+      <div class="kpi-icon" style="background:var(--rose-l);color:var(--rose)">❌</div>
+      <div class="kpi-label">Otkaz</div>
+      <div class="kpi-value" id="kpiLost" style="color:var(--rose)">—</div>
+      <div class="kpi-sub" id="kpiConv">—</div>
+    </div>
+    <div class="kpi anim d5">
+      <div class="kpi-shine" style="background:var(--amber)"></div>
+      <div class="kpi-icon" style="background:var(--amber-l);color:var(--amber)">🔄</div>
+      <div class="kpi-label">Jarayonda</div>
+      <div class="kpi-value" id="kpiAvg" style="color:var(--amber)">—</div>
+      <div class="kpi-sub">hujjat/viza bosqichida</div>
+    </div>
+    <div class="kpi anim d6">
+      <div class="kpi-shine" style="background:var(--violet)"></div>
+      <div class="kpi-icon" style="background:var(--violet-l);color:var(--violet)">🏆</div>
+      <div class="kpi-label">Top menejer</div>
+      <div class="kpi-value sm" id="kpiTop" style="color:var(--violet)">—</div>
+      <div class="kpi-sub" id="kpiTopSub">—</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="panel anim d6">
+      <div class="panel-head"><h2>Kanal bo'yicha taqsimot</h2><span class="tag" id="donutTag">—</span></div>
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-center"><div class="big" id="donutCenter">—</div><div class="lbl">lid</div></div>
+      </div>
+      <div class="legend" id="donutLegend"></div>
+    </div>
+    <div class="panel anim d7">
+      <div class="panel-head"><h2>Menejer bo'yicha</h2><span class="tag">lid</span></div>
+      <div class="chart-box"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="panel anim d8">
+      <div class="panel-head"><h2>Oylik dinamika</h2><span class="tag">lidlar</span></div>
+      <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel anim d8" style="margin-bottom:15px;">
+    <div class="panel-head">
+      <h2>Mamlakat bo'yicha</h2>
+      <span class="tag" id="countryTag">bugun</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;" id="countryKpis"></div>
+    <div class="chart-box" style="height:180px;"><canvas id="countryBarChart"></canvas></div>
+  </div>
+
+  <div class="grid2">
+    <div class="table-card anim d9">
+      <div class="table-hd"><span>Menejer</span><span>Jami</span><span>Joylashtirildi</span><span>Otkaz</span><span>Konversiya</span></div>
+      <div class="table-body" id="tableBody">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+    <div class="panel anim d10">
+      <div class="panel-head"><h2>Otkaz sabablari</h2><span class="tag rose" id="lostTag">—</span></div>
+      <div class="reasons" id="reasonsList">
+        <div style="padding:20px;text-align:center;color:var(--text3);font-size:12.5px">Yuklanmoqda...</div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /page-leads -->
+
+  <div id="page-chats" style="display:none">
+  <div id="chatsEmptyNote" class="empty-state" style="display:none;">
+    <div class="es-icon">📭</div>
+    Tanlangan davrda hech qanday suhbat topilmadi.
+  </div>
+    <div class="kpis">
+      <div class="kpi clickable anim d2" data-filter="all" onclick="setChatFilter('all')">
+        <div class="kpi-shine" style="background:var(--indigo)"></div>
+        <div class="kpi-icon" style="background:var(--indigo-l);color:var(--indigo)">💬</div>
+        <div class="kpi-label">Jami suhbatlar</div>
+        <div class="kpi-value" id="kpiChatsTotal" style="color:var(--indigo)">—</div>
+        <div class="kpi-sub" id="kpiChatsDate">bugun</div>
+        <div class="kpi-sub" id="kpiChatsTotalDelta" style="margin-top:2px;"></div>
+      </div>
+      <div class="kpi clickable anim d3" data-filter="resolved" onclick="setChatFilter('resolved')">
+        <div class="kpi-shine" style="background:var(--green)"></div>
+        <div class="kpi-icon" style="background:var(--green-l);color:var(--green)">✅</div>
+        <div class="kpi-label">AI hal qildi</div>
+        <div class="kpi-value" id="kpiChatsResolved" style="color:var(--green)">—</div>
+        <div class="kpi-sub" id="kpiChatsResolvedRate">—</div>
+      </div>
+      <div class="kpi clickable anim d4" data-filter="escalated" onclick="setChatFilter('escalated')">
+        <div class="kpi-shine" style="background:var(--rose)"></div>
+        <div class="kpi-icon" style="background:var(--rose-l);color:var(--rose)">⚠️</div>
+        <div class="kpi-label">Menejerga uzatildi</div>
+        <div class="kpi-value" id="kpiChatsEscalated" style="color:var(--rose)">—</div>
+        <div class="kpi-sub">e'tibor talab qiladi</div>
+      </div>
+      <div class="kpi anim d5">
+        <div class="kpi-shine" style="background:var(--amber)"></div>
+        <div class="kpi-icon" style="background:var(--amber-l);color:var(--amber)">⭐</div>
+        <div class="kpi-label">O'rtacha baho</div>
+        <div class="kpi-value" id="kpiChatsScore" style="color:var(--amber)">—</div>
+        <div class="kpi-sub">100 balldan</div>
+      </div>
+      <div class="kpi anim d6">
+        <div class="kpi-shine" style="background:var(--violet)"></div>
+        <div class="kpi-icon" style="background:var(--violet-l);color:var(--violet)">🏆</div>
+        <div class="kpi-label">Eng faol kanal</div>
+        <div class="kpi-value sm" id="kpiChatsTop" style="color:var(--violet)">—</div>
+        <div class="kpi-sub" id="kpiChatsTopSub">—</div>
+      </div>
+    </div>
+
+    <div class="kpis-mini">
+      <div class="kpi-mini clickable anim d6" data-filter="telegram" onclick="setChatFilter('telegram')">
+        <div class="km-ic" style="background:var(--indigo-l);color:var(--indigo)">✈️</div>
+        <div><div class="km-val" id="kpiChatsTelegram">—</div><div class="km-lbl">Telegram</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d7" data-filter="whatsapp" onclick="setChatFilter('whatsapp')">
+        <div class="km-ic" style="background:var(--green-l);color:var(--green)">💚</div>
+        <div><div class="km-val" id="kpiChatsWhatsapp">—</div><div class="km-lbl">WhatsApp</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d8" data-filter="instagram" onclick="setChatFilter('instagram')">
+        <div class="km-ic" style="background:var(--violet-l);color:var(--violet)">📷</div>
+        <div><div class="km-val" id="kpiChatsInstagram">—</div><div class="km-lbl">Instagram</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="lowscore" onclick="setChatFilter('lowscore')">
+        <div class="km-ic" style="background:var(--rose-l);color:var(--rose)">🔻</div>
+        <div><div class="km-val" id="kpiChatsLowScore" style="color:var(--rose)">—</div><div class="km-lbl" id="kpiChatsLowScoreLbl">Past baholi (&lt;50)</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="negative" onclick="setChatFilter('negative')">
+        <div class="km-ic" style="background:var(--rose-l);color:var(--rose)">😠</div>
+        <div><div class="km-val" id="kpiChatsNegative" style="color:var(--rose)">—</div><div class="km-lbl">Salbiy suhbatlar</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="voice" onclick="setChatFilter('voice')">
+        <div class="km-ic" style="background:var(--amber-l);color:var(--amber)">🎙️</div>
+        <div><div class="km-val" id="kpiChatsVoice">—</div><div class="km-lbl">Ovozli xabarlar</div></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel anim d6">
+        <div class="panel-head"><h2>Sentiment taqsimoti</h2><span class="tag" id="donutChatsTag">—</span></div>
+        <div class="donut-wrap">
+          <canvas id="donutChatsChart"></canvas>
+          <div class="donut-center"><div class="big" id="donutChatsCenter">—</div><div class="lbl">suhbat</div></div>
+        </div>
+        <div class="legend" id="donutChatsLegend"></div>
+      </div>
+      <div class="panel anim d7">
+        <div class="panel-head"><h2>Kanal bo'yicha</h2><span class="tag">soni</span></div>
+        <div class="chart-box"><canvas id="barChatsChart"></canvas></div>
+      </div>
+      <div class="panel anim d8">
+        <div class="panel-head"><h2>Oylik dinamika</h2><span class="tag">suhbatlar</span></div>
+        <div class="chart-box"><canvas id="monthlyChatsChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-card anim d9" id="chatsTableCard" style="margin-bottom:14px;">
+      <div class="table-hd"><span>Kanal</span><span>Soni</span><span>O'rtacha baho</span><span>Hal qilingan</span></div>
+      <div class="table-body" id="chatsTableBody">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+
+    <div class="panel anim d10" id="recentChatsCard">
+      <div class="panel-head"><h2>So'nggi suhbatlar</h2><span class="tag" id="recentChatsTag">—</span></div>
+      <div id="recentChatsFilterBar" style="display:none;margin-bottom:12px;"></div>
+      <div id="recentChatsList" style="display:flex;flex-direction:column;gap:10px;max-height:460px;overflow-y:auto;">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+  </div><!-- /page-chats -->
+
+  <div id="page-calls" style="display:none">
+  <div id="callsEmptyNote" class="empty-state" style="display:none;">
+    <div class="es-icon">📭</div>
+    Tanlangan davrda hech qanday qo'ng'iroq topilmadi.
+  </div>
+    <div class="kpis">
+      <div class="kpi clickable anim d2" data-filter="all" onclick="setCallFilter('all')">
+        <div class="kpi-shine" style="background:var(--indigo)"></div>
+        <div class="kpi-icon" style="background:var(--indigo-l);color:var(--indigo)">📞</div>
+        <div class="kpi-label">Jami qo'ng'iroqlar</div>
+        <div class="kpi-value" id="kpiCallsTotal" style="color:var(--indigo)">—</div>
+        <div class="kpi-sub" id="kpiCallsDate">bugun</div>
+        <div class="kpi-sub" id="kpiCallsTotalDelta" style="margin-top:2px;"></div>
+      </div>
+      <div class="kpi clickable anim d3" data-filter="success" onclick="setCallFilter('success')">
+        <div class="kpi-shine" style="background:var(--green)"></div>
+        <div class="kpi-icon" style="background:var(--green-l);color:var(--green)">✅</div>
+        <div class="kpi-label">Muvaffaqiyatli</div>
+        <div class="kpi-value" id="kpiCallsSuccess" style="color:var(--green)">—</div>
+        <div class="kpi-sub" id="kpiCallsSuccessRate">—</div>
+      </div>
+      <div class="kpi clickable anim d4" data-filter="negative" onclick="setCallFilter('negative')">
+        <div class="kpi-shine" style="background:var(--rose)"></div>
+        <div class="kpi-icon" style="background:var(--rose-l);color:var(--rose)">⚠️</div>
+        <div class="kpi-label">Salbiy suhbatlar</div>
+        <div class="kpi-value" id="kpiCallsNegative" style="color:var(--rose)">—</div>
+        <div class="kpi-sub">e'tibor talab qiladi</div>
+      </div>
+      <div class="kpi anim d5">
+        <div class="kpi-shine" style="background:var(--amber)"></div>
+        <div class="kpi-icon" style="background:var(--amber-l);color:var(--amber)">⭐</div>
+        <div class="kpi-label">O'rtacha baho</div>
+        <div class="kpi-value" id="kpiCallsScore" style="color:var(--amber)">—</div>
+        <div class="kpi-sub">100 balldan</div>
+      </div>
+      <div class="kpi anim d6">
+        <div class="kpi-shine" style="background:var(--violet)"></div>
+        <div class="kpi-icon" style="background:var(--violet-l);color:var(--violet)">🏆</div>
+        <div class="kpi-label">Eng faol menejer</div>
+        <div class="kpi-value sm" id="kpiCallsTop" style="color:var(--violet)">—</div>
+        <div class="kpi-sub" id="kpiCallsTopSub">—</div>
+      </div>
+    </div>
+
+    <div class="kpis-mini">
+      <div class="kpi-mini clickable anim d6" data-filter="in" onclick="setCallFilter('in')">
+        <div class="km-ic" style="background:var(--indigo-l);color:var(--indigo)">↘️</div>
+        <div><div class="km-val" id="kpiCallsIn">—</div><div class="km-lbl">Kirish qo'ng'iroqlar</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d7" data-filter="out" onclick="setCallFilter('out')">
+        <div class="km-ic" style="background:var(--violet-l);color:var(--violet)">↗️</div>
+        <div><div class="km-val" id="kpiCallsOut">—</div><div class="km-lbl">Chiqish qo'ng'iroqlar</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d8" data-filter="missed" onclick="setCallFilter('missed')">
+        <div class="km-ic" style="background:var(--rose-l);color:var(--rose)">📵</div>
+        <div><div class="km-val" id="kpiCallsMissed" style="color:var(--rose)">—</div><div class="km-lbl">Ko'tarilmagan</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="lowscore" onclick="setCallFilter('lowscore')">
+        <div class="km-ic" style="background:var(--rose-l);color:var(--rose)">🔻</div>
+        <div><div class="km-val" id="kpiCallsLowScore" style="color:var(--rose)">—</div><div class="km-lbl" id="kpiCallsLowScoreLbl">Past baholi (&lt;50)</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="average" onclick="setCallFilter('average')">
+        <div class="km-ic" style="background:var(--amber-l);color:var(--amber)">🟡</div>
+        <div><div class="km-val" id="kpiCallsAverage">—</div><div class="km-lbl">O'rtacha suhbatlar</div></div>
+      </div>
+      <div class="kpi-mini clickable anim d9" data-filter="unknownsource" onclick="setCallFilter('unknownsource')">
+        <div class="km-ic" style="background:var(--violet-l);color:var(--violet)">❓</div>
+        <div><div class="km-val" id="kpiCallsUnknownSource" style="color:var(--violet)">—</div><div class="km-lbl">Manba noma'lum</div></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel anim d6">
+        <div class="panel-head"><h2>Sentiment taqsimoti</h2><span class="tag" id="donutCallsTag">—</span></div>
+        <div class="donut-wrap">
+          <canvas id="donutCallsChart"></canvas>
+          <div class="donut-center"><div class="big" id="donutCallsCenter">—</div><div class="lbl">qo'ng'iroq</div></div>
+        </div>
+        <div class="legend" id="donutCallsLegend"></div>
+      </div>
+      <div class="panel anim d7">
+        <div class="panel-head"><h2>Menejer bo'yicha</h2><span class="tag">soni</span></div>
+        <div class="chart-box"><canvas id="barCallsChart"></canvas></div>
+      </div>
+      <div class="panel anim d8">
+        <div class="panel-head"><h2>Oylik dinamika</h2><span class="tag">qo'ng'iroqlar</span></div>
+        <div class="chart-box"><canvas id="monthlyCallsChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="table-card anim d9" id="callsTableCard" style="margin-bottom:14px;">
+      <div class="table-hd"><span>Menejer</span><span>Soni</span><span>O'rtacha baho</span><span>Muvaffaqiyatli</span></div>
+      <div class="table-body" id="callsTableBody">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+
+    <div class="panel anim d10" id="recentCallsCard">
+      <div class="panel-head"><h2>So'nggi qo'ng'iroqlar</h2><span class="tag" id="recentCallsTag">—</span></div>
+      <div id="recentCallsFilterBar" style="display:none;margin-bottom:12px;"></div>
+      <div id="recentCallsList" style="display:flex;flex-direction:column;gap:10px;max-height:460px;overflow-y:auto;">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+  </div><!-- /page-calls -->
+
+  <div id="page-pending" style="display:none">
+  <div id="pendingEmptyNote" class="empty-state" style="display:none;">
+    <div class="es-icon">📭</div>
+    Hozircha javob kutayotgan lidlar yo'q.
+  </div>
+    <div class="kpis">
+      <div class="kpi anim d2">
+        <div class="kpi-shine" style="background:var(--indigo)"></div>
+        <div class="kpi-icon" style="background:var(--indigo-l);color:var(--indigo)">⏳</div>
+        <div class="kpi-label">Kutilmoqda</div>
+        <div class="kpi-value" id="kpiPendingTotal" style="color:var(--indigo)">—</div>
+        <div class="kpi-sub">javob kutayotgan lid</div>
+      </div>
+      <div class="kpi clickable anim d3" data-filter="unassigned" onclick="setPendingFilter('unassigned')">
+        <div class="kpi-shine" style="background:var(--rose)"></div>
+        <div class="kpi-icon" style="background:var(--rose-l);color:var(--rose)">🚫</div>
+        <div class="kpi-label">Tayinlanmagan</div>
+        <div class="kpi-value" id="kpiPendingUnassigned" style="color:var(--rose)">—</div>
+        <div class="kpi-sub">menejer biriktirilmagan</div>
+      </div>
+      <div class="kpi clickable anim d4" data-filter="critical" onclick="setPendingFilter('critical')">
+        <div class="kpi-shine" style="background:var(--rose)"></div>
+        <div class="kpi-icon" style="background:var(--rose-l);color:var(--rose)">🔥</div>
+        <div class="kpi-label">1 soatdan ko'p kutgan</div>
+        <div class="kpi-value" id="kpiPendingCritical" style="color:var(--rose)">—</div>
+        <div class="kpi-sub">SLA buzilgan</div>
+      </div>
+      <div class="kpi anim d5">
+        <div class="kpi-shine" style="background:var(--amber)"></div>
+        <div class="kpi-icon" style="background:var(--amber-l);color:var(--amber)">⏱️</div>
+        <div class="kpi-label">O'rtacha kutish</div>
+        <div class="kpi-value sm" id="kpiPendingAvg" style="color:var(--amber)">—</div>
+        <div class="kpi-sub">daqiqa</div>
+      </div>
+      <div class="kpi anim d6">
+        <div class="kpi-shine" style="background:var(--violet)"></div>
+        <div class="kpi-icon" style="background:var(--violet-l);color:var(--violet)">🐢</div>
+        <div class="kpi-label">Eng uzoq kutgan</div>
+        <div class="kpi-value sm" id="kpiPendingMax" style="color:var(--violet)">—</div>
+        <div class="kpi-sub" id="kpiPendingMaxSub">—</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel anim d6">
+        <div class="panel-head"><h2>Manba bo'yicha</h2><span class="tag" id="donutPendingTag">—</span></div>
+        <div class="donut-wrap">
+          <canvas id="donutPendingChart"></canvas>
+          <div class="donut-center"><div class="big" id="donutPendingCenter">—</div><div class="lbl">lid</div></div>
+        </div>
+        <div class="legend" id="donutPendingLegend"></div>
+      </div>
+      <div class="panel anim d7" style="grid-column:span 2;">
+        <div class="panel-head"><h2>Menejer bo'yicha kutilayotganlar</h2><span class="tag">soni</span></div>
+        <div class="chart-box"><canvas id="barPendingChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel anim d10" id="pendingListCard">
+      <div class="panel-head"><h2>Kutilayotgan lidlar ro'yxati</h2><span class="tag" id="pendingListTag">—</span></div>
+      <div id="pendingFilterBar" style="display:none;margin-bottom:12px;"></div>
+      <div id="pendingList" style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;">
+        <div style="padding:34px;text-align:center;color:var(--text3);font-size:13px">Yuklanmoqda...</div>
+      </div>
+    </div>
+  </div><!-- /page-pending -->
+
+  <footer>Google Sheets · avtomatik yangilanadi har 20 soniyada</footer>
+</div>
+<script>
+// ================== IMIRJOBS CRM DASHBOARD ==================
+// MA'LUMOT MANBALARI: Google Sheets'dan CSV formatida eksport qilingan havolalar.
+// Sheets ustunlari pastda CONFIG izohlarida ko'rsatilgan.
+
+// "Lidlar" varag'i — Sana, Ism, Telefon, Kanal, Mamlakat, Kasb, Status, Menejer, Otkaz_sababi
+const CSV_LEADS="https://docs.google.com/spreadsheets/d/e/2PACX-1vRMSk5VIO9F6h4r8ZsGCR8oYWq5w5wGBwjsWSnqXdP6Hka0OYMfgQ2d9sotEWNMi5FiS-nslJHINx3B/pub?gid=1022953095&single=true&output=csv";
+// "Suhbatlar" varag'i — Sana, Kanal, Foydalanuvchi, Xabar_turi, Baho, Holat, Sentiment, Lead_sifati, Xulosa, Muammolar, Ovoz_URL
+const CSV_CHATS="https://docs.google.com/spreadsheets/d/e/2PACX-1vRMSk5VIO9F6h4r8ZsGCR8oYWq5w5wGBwjsWSnqXdP6Hka0OYMfgQ2d9sotEWNMi5FiS-nslJHINx3B/pub?gid=17680559&single=true&output=csv";
+// "JavobKutilmoqda" varag'i — LidNomi, YaratilganVaqt(unix son), Menejer, Holat, UniqueKey
+const CSV_PENDING="https://docs.google.com/spreadsheets/d/e/2PACX-1vRMSk5VIO9F6h4r8ZsGCR8oYWq5w5wGBwjsWSnqXdP6Hka0OYMfgQ2d9sotEWNMi5FiS-nslJHINx3B/pub?gid=1608843017&single=true&output=csv";
+// "Qo'ng'iroqlar" varag'i — Sana, Menejer, Nomzod, Davomiylik_sek, Baho, Muvaffaqiyatli, Sentiment, Lead_sifati, Xulosa, Muammolar, Yozib_olish_URL, Yo'nalish, Holat, Manba
+const CSV_CALLS="https://docs.google.com/spreadsheets/d/e/2PACX-1vRMSk5VIO9F6h4r8ZsGCR8oYWq5w5wGBwjsWSnqXdP6Hka0OYMfgQ2d9sotEWNMi5FiS-nslJHINx3B/pub?gid=542079858&single=true&output=csv";
+
+let donutChart=null,barChart=null,monthlyChart=null,countryBarChart=null;
+let donutChatsChart=null,barChatsChart=null,monthlyChatsChart=null;
+let donutCallsChart=null,barCallsChart=null,monthlyCallsChart=null;
+let donutPendingChart=null,barPendingChart=null;
+let currentTab='month',currentPage='leads',leadsRows=[],leadsH=[],chatsRows=[],chatsH=[],callsRows=[],callsH=[],pendingRows=[],pendingH=[];
+let activeChatFilter=null; // null | 'telegram' | 'whatsapp' | 'instagram' | 'lowscore' | 'negative' | 'voice' | 'resolved' | 'escalated'
+let activeCallFilter=null; // null | 'in' | 'out' | 'missed' | 'lowscore' | ...
+let activePendingFilter=null; // null | 'unassigned' | 'critical'
+
+function setChatFilter(type){
+  activeChatFilter=(activeChatFilter===type)?null:type;
+  if(chatsRows.length)renderChats();
+  const card=document.getElementById('recentChatsCard');
+  if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+const LEADS_DEMO=`Sana,Ism,Telefon,Kanal,Mamlakat,Kasb,Status,Menejer,Otkaz_sababi
+2026-08-14,Aziz Karimov,+998901234567,Telegram,Litva,CE haydovchi,Joylashtirildi,Dilnoza,
+2026-08-14,Malika Yusupova,+998933345678,Instagram,Polsha,Fabrika ishchisi,Jarayonda,Sherzod,
+2026-08-13,Bekzod Toshev,+998971122334,WhatsApp,Latviya,Qurilish ishchisi,Otkaz qilindi,Dilnoza,Hujjat yetishmadi
+2026-08-13,Nodira Rashidova,+998909988776,Telegram,Estoniya,CE haydovchi,Yangi,Sherzod,
+2026-08-12,Jasur Aliyev,+998950011223,Instagram,Serbiya,Fabrika ishchisi,Joylashtirildi,Dilnoza,
+2026-08-12,Kamola Sultonova,+998977766554,WhatsApp,Xorvatiya,Ombor ishchisi,Otkaz qilindi,Sherzod,Narx yuqori deb topdi
+2026-08-11,Sardor Nabiyev,+998912233445,Telegram,Bolgariya,CE haydovchi,Jarayonda,Dilnoza,
+2026-08-11,Ulug'bek Rahimov,+998915566778,Telegram,Litva,CE haydovchi,Joylashtirildi,Sherzod,
+2026-08-10,Feruza Nazarova,+998936677889,Instagram,Slovakiya,Fabrika ishchisi,Otkaz qilindi,Dilnoza,Aloqaga chiqmadi
+2026-08-10,Otabek Yoldashev,+998974455663,WhatsApp,Sloveniya,Qurilish ishchisi,Jarayonda,Sherzod,`;
+
+const CHATS_DEMO=`Sana,Kanal,Foydalanuvchi,Xabar_turi,Baho,Holat,Sentiment,Lead_sifati,Xulosa,Muammolar,Ovoz_URL
+2026-08-14,Telegram,Aziz K.,matn,82,Hal qilindi,Ijobiy,Issiq,"CE toifa 095-kod talablari va to'lov bosqichlari haqida savol berdi, AI to'liq javob berdi.",,
+2026-08-14,WhatsApp,Bekzod T.,ovoz,45,Menejerga uzatildi,Salbiy,Sovuq,"Hujjat topshirish muddati haqida noaniqlik bo'ldi.",Javob to'liq emas edi,https://example.com/voice1
+2026-08-13,Instagram,Malika Y.,matn,90,Hal qilindi,Ijobiy,Issiq,"Polsha uchun viza muddati va narxlar so'ralgan, AI aniq javob berdi.",,
+2026-08-13,Telegram,Nodira R.,ovoz,60,Hal qilindi,Neytral,O'rta,"Ish haqi va shartlar haqida savol berdi.",,https://example.com/voice2
+2026-08-12,WhatsApp,Jasur A.,matn,38,Menejerga uzatildi,Salbiy,O'rta,"Mijoz javobdan norozi bo'ldi, mamlakat noto'g'ri aytilgan.",AI noto'g'ri mamlakat aytdi,
+2026-08-12,Instagram,Kamola S.,matn,75,Hal qilindi,Ijobiy,Issiq,"Xorvatiya uchun ish sharoitlari haqida savol.",,
+2026-08-11,Telegram,Sardor N.,matn,88,Hal qilindi,Ijobiy,Issiq,"CE haydovchilar uchun litsenziya sanasi bo'yicha to'lov tizimi tushuntirildi.",,`;
+
+const CALLS_DEMO=`Sana,Menejer,Nomzod,Davomiylik_sek,Baho,Muvaffaqiyatli,Sentiment,Lead_sifati,Xulosa,Muammolar,Yozib_olish_URL,Yo'nalish,Holat,Manba
+2026-08-14,Dilnoza,+998901234567,186,88,Ha,Ijobiy,Issiq,"CE toifa uchun 095-kod talablari va to'lov bosqichlari telefonda tushuntirildi, nomzod rozi bo'ldi.",,https://example.com/call1,Chiqish,Javob berildi,Telegram
+2026-08-14,Sherzod,+998933345678,64,52,Ha,Neytral,O'rta,"Polsha uchun hujjatlar ro'yxati aytib berildi, nomzod o'ylab ko'raman dedi.",,https://example.com/call2,Chiqish,Javob berildi,Instagram
+2026-08-13,Dilnoza,+998971122334,0,,Yo'q,,,"Ko'tarilmagan qo'ng'iroq",,,Chiqish,Ko'tarilmagan,WhatsApp
+2026-08-13,Sherzod,+998909988776,212,91,Ha,Ijobiy,Issiq,"Estoniya uchun viza muddati va ish sharoitlari haqida batafsil suhbat, nomzod hujjat topshirishga rozi.",,https://example.com/call3,Kirish,Javob berildi,Telegram
+2026-08-12,Dilnoza,+998950011223,38,40,Ha,Salbiy,Sovuq,"Narx (xizmat haqi) yuqori deb topdi, e'tiroz yechilmadi.",Narx e'tiroziga to'liq javob berilmadi,https://example.com/call4,Chiqish,Javob berildi,Instagram
+2026-08-11,Sherzod,+998912233445,145,85,Ha,Ijobiy,Issiq,"CE haydovchi litsenziyasi sanasi aniqlashtirildi, keyingi qadam kelishildi.",,https://example.com/call5,Kirish,Javob berildi,Telegram`;
+
+function buildPendingDemo(){
+  const now=Math.floor(Date.now()/1000);
+  const rows=[
+    ["instagram_business:17841441265789551 (saralanmagan)", now-125*60, "Tayinlanmagan", "Kutilmoqda"],
+    ["Сделка #58231 — CE haydovchi so'rovi", now-42*60, "Dilnoza", "Kutilmoqda"],
+    ["facebook_business:998901234567", now-18*60, "Sherzod", "Kutilmoqda"],
+    ["instagram_business:17841468291811918 (saralanmagan)", now-340*60, "Tayinlanmagan", "Kutilmoqda"],
+    ["Сделка #58204 — Polsha uchun ariza", now-6*60, "Dilnoza", "Kutilmoqda"],
+    ["telegram_bot:998977712233", now-71*60, "Sherzod", "Kutilmoqda"],
+    ["instagram_business:17841441265789551 (saralanmagan)", now-9*60, "Tayinlanmagan", "Kutilmoqda"],
+  ];
+  const header="LidNomi,YaratilganVaqt,Menejer,Holat,UniqueKey";
+  const body=rows.map((r,i)=>`"${r[0]}",${r[1]},${r[2]},${r[3]},demo-${i}`).join('\n');
+  return header+'\n'+body;
+}
+
+function fmtDur(mins){
+  const m=Math.floor(mins),s=Math.round((mins-m)*60);
+  return m+':'+String(s).padStart(2,'0');
+}
+
+const PAL=['#5a5df0','#00b87c','#f5a524','#f04870','#9b5ef5','#00b8d4','#ff7043','#26c6a0','#ffca28','#ec4899','#3b82f6','#84cc16'];
+const RPAL=['#f04870','#ff7a45','#f5a524','#9b5ef5','#00b8d4','#94a3b8'];
+const COUNTRY_ICONS={'Litva':'🇱🇹','Latviya':'🇱🇻','Estoniya':'🇪🇪','Bolgariya':'🇧🇬','Polsha':'🇵🇱','Xorvatiya':'🇭🇷','Slovakiya':'🇸🇰','Sloveniya':'🇸🇮','Serbiya':'🇷🇸'};
+// ===== SOZLAMALAR (CONFIG) =====
+// Bu yerdagi qiymatlarni o'zgartirsangiz, butun dashboard'dagi baholash mezonlari yangilanadi.
+const CONFIG={
+  lowScoreThreshold: 50,   // shundan past baho "Past baholi" hisoblanadi (0-100 shkalada)
+};
+
+const MONTHS=['Yan','Fev','Mar','Apr','May','Iyun','Iyul','Avg','Sen','Okt','Noy','Dek'];
+const MONTHS_FULL=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+function monthLabel(){
+  const mv=document.getElementById('monthValue')?.value;
+  if(!mv)return 'joriy oy';
+  const[y,m]=mv.split('-').map(Number);
+  return MONTHS_FULL[m-1]+' '+y;
+}
+
+function num(v){const n=parseFloat((v||'').toString().replace(/[, ]/g,''));return isNaN(n)?0:n;}
+function fmt(n){return new Intl.NumberFormat('uz-UZ').format(Math.round(n));}
+function parseCSV(t){
+  // To'g'ri RFC4180-uslubidagi parser: qo'shtirnoq ichidagi vergul va yangi qatorni
+  // (masalan ko'p qatorli "Xulosa" matnini) buzmasdan o'qiydi.
+  const rows=[];
+  let row=[],field='',inQuotes=false;
+  for(let i=0;i<t.length;i++){
+    const c=t[i],next=t[i+1];
+    if(inQuotes){
+      if(c==='"'){ if(next==='"'){field+='"';i++;} else{inQuotes=false;} }
+      else field+=c;
+    }else{
+      if(c==='"')inQuotes=true;
+      else if(c===','){row.push(field);field='';}
+      else if(c==='\r'){/* skip */}
+      else if(c==='\n'){row.push(field);rows.push(row);row=[];field='';}
+      else field+=c;
+    }
+  }
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  const clean=rows.filter(r=>r.some(v=>v.trim()!==''));
+  if(!clean.length)return{h:[],rows:[]};
+  const h=clean[0].map(s=>s.trim());
+  const dataRows=clean.slice(1).map(cols=>{
+    const o={};h.forEach((k,i)=>o[k]=(cols[i]!==undefined?cols[i]:'').trim());
+    return o;
+  });
+  return{h,rows:dataRows};
+}
+function setStatus(s,t){
+  document.getElementById('statusDot').className='dot'+(s==='ok'?'':s==='err'?' err':' load');
+  document.getElementById('statusText').textContent=t;
+}
+function setTab(el,tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');currentTab=tab;
+  const pp=document.getElementById('periodPicker');
+  if(pp)pp.style.display=tab==='period'?'flex':'none';
+  const mp=document.getElementById('monthPicker');
+  if(mp){
+    mp.style.display=tab==='month'?'flex':'none';
+    if(tab==='month'){
+      const mv=document.getElementById('monthValue');
+      if(mv&&!mv.value){
+        const now=new Date();
+        mv.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+      }
+    }
+  }
+  if(currentPage==='leads'&&leadsRows.length)renderAll();
+  if(currentPage==='chats'&&chatsRows.length)renderChats();
+  if(currentPage==='calls'&&callsRows.length)renderCalls();
+}
+function applyMonth(){
+  if(currentPage==='leads'&&leadsRows.length)renderAll();
+  if(currentPage==='chats'&&chatsRows.length)renderChats();
+  if(currentPage==='calls'&&callsRows.length)renderCalls();
+}
+function setPage(el,page){
+  document.querySelectorAll('.pagetab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');currentPage=page;
+  document.getElementById('page-leads').style.display=page==='leads'?'':'none';
+  document.getElementById('page-chats').style.display=page==='chats'?'':'none';
+  document.getElementById('page-calls').style.display=page==='calls'?'':'none';
+  document.getElementById('page-pending').style.display=page==='pending'?'':'none';
+  hideErrorBanner();
+  if(page==='leads'&&leadsRows.length)renderAll();
+  if(page==='chats'&&chatsRows.length)renderChats();
+  if(page==='calls'&&callsRows.length)renderCalls();
+  if(page==='pending'&&pendingRows.length)renderPending();
+}
+function getComparisonTest(){
+  if(currentTab==='today'){
+    const y=new Date();y.setDate(y.getDate()-1);
+    const ys=y.toLocaleDateString('sv-SE');
+    return d=>d===ys;
+  }
+  if(currentTab==='yesterday'){
+    const y2=new Date();y2.setDate(y2.getDate()-2);
+    const ys2=y2.toLocaleDateString('sv-SE');
+    return d=>d===ys2;
+  }
+  if(currentTab==='week'){
+    const start=new Date();start.setDate(start.getDate()-14);
+    const end=new Date();end.setDate(end.getDate()-7);
+    const ss=start.toLocaleDateString('sv-SE'),es=end.toLocaleDateString('sv-SE');
+    return d=>d>=ss&&d<es;
+  }
+  if(currentTab==='month'){
+    const mv=document.getElementById('monthValue').value;
+    if(!mv)return null;
+    const[y,m]=mv.split('-').map(Number);
+    let py=y,pm=m-1;if(pm<1){pm=12;py=y-1;}
+    const pmStr=py+'-'+String(pm).padStart(2,'0');
+    return d=>(d||'').slice(0,7)===pmStr;
+  }
+  return null; // Period tab uchun taqqoslash yo'q
+}
+function renderDelta(elId,currentVal,rows,dateKey,valueGetter){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  const test=getComparisonTest();
+  if(!test){el.textContent='';return;}
+  const prevVal=rows.filter(r=>test(r[dateKey])).reduce((a,r)=>a+valueGetter(r),0);
+  if(prevVal===0){
+    el.innerHTML=currentVal>0?`<span style="color:var(--text3)">avvalgi davrda ma'lumot yo'q</span>`:'';
+    return;
+  }
+  const pct=((currentVal-prevVal)/prevVal*100);
+  const up=pct>=0;
+  el.innerHTML=`<span style="color:${up?'var(--green)':'var(--rose)'};font-weight:700">${up?'↑':'↓'} ${Math.abs(pct).toFixed(1)}%</span> <span style="color:var(--text3)">oldingi davrga nisbatan</span>`;
+}
+
+function inRange(dateStr){
+  const today=new Date().toLocaleDateString('sv-SE');
+  if(currentTab==='today')return dateStr===today;
+  if(currentTab==='yesterday'){
+    const y=new Date();y.setDate(y.getDate()-1);
+    return dateStr===y.toLocaleDateString('sv-SE');
+  }
+  if(currentTab==='period'){
+    const from=document.getElementById('dateFrom').value;
+    const to=document.getElementById('dateTo').value;
+    if(!from||!to)return true;
+    return dateStr>=from&&dateStr<=to;
+  }
+  if(currentTab==='month'){
+    const mv=document.getElementById('monthValue').value;
+    if(!mv)return true;
+    return (dateStr||'').slice(0,7)===mv;
+  }
+  const d=new Date();d.setDate(d.getDate()-(currentTab==='week'?7:30));
+  return dateStr>=d.toLocaleDateString('sv-SE');
+}
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('themeToggle').textContent=isDark?'🌙':'☀️';
+  localStorage.setItem('theme',isDark?'light':'dark');
+}
+
+// Load saved theme
+(function(){
+  const t=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  setTimeout(()=>{
+    const btn=document.getElementById('themeToggle');
+    if(btn)btn.textContent=t==='dark'?'☀️':'🌙';
+  },0);
+})();
+
+function applyPeriod(){
+  if(currentPage==='leads'&&leadsRows.length)renderAll();
+  if(currentPage==='chats'&&chatsRows.length)renderChats();
+  if(currentPage==='calls'&&callsRows.length)renderCalls();
+}
+
+function animateVal(el,to){
+  const from=parseFloat(el.dataset.v||0);el.dataset.v=to;
+  const dur=700,t0=performance.now();
+  function step(t){
+    const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3);
+    el.textContent=fmt(from+(to-from)*e);
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+const tt={backgroundColor:'#fff',borderColor:'#e7ecf5',borderWidth:1,padding:12,cornerRadius:10,
+  titleColor:'#5a6684',bodyColor:'#111629',titleFont:{size:11.5,weight:'600'},bodyFont:{size:12.5,weight:'600'},boxPadding:5};
+
+function esc(s){return (s||'').toString().replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+const isWon=v=>/joylash|placed|won/i.test((v||'').toString());
+const isLost=v=>/otkaz|bekor|lost/i.test((v||'').toString());
+
+// ================== LIDLAR SAHIFASI ==================
+function renderAll(){
+  const h=leadsH,rows=leadsRows;
+  const dk=h.find(x=>/sana/i.test(x))||h[0];
+  const nmk=h.find(x=>/^ism/i.test(x))||h[1];
+  const kk=h.find(x=>/kanal/i.test(x))||h[3];
+  const ctk=h.find(x=>/mamlakat|davlat/i.test(x))||h[4];
+  const stk2=h.find(x=>/status|holat/i.test(x))||h[6];
+  const mnk=h.find(x=>/menejer|manager/i.test(x))||h[7];
+  const rk=h.find(x=>/sabab/i.test(x))||h[8];
+
+  const today=new Date().toLocaleDateString('sv-SE');
+  const show=rows.filter(r=>inRange(r[dk]));
+  const totalCnt=show.length;
+  const wonRows=show.filter(r=>isWon(r[stk2]));
+  const lostRows2=show.filter(r=>isLost(r[stk2]));
+  const activeRows=show.filter(r=>!isWon(r[stk2])&&!isLost(r[stk2]));
+  const wonCnt=wonRows.length,lostCnt=lostRows2.length,activeCnt=activeRows.length;
+
+  const byManager={};
+  show.forEach(r=>{const n=r[mnk]||'—';if(!byManager[n])byManager[n]={total:0,won:0,lost:0};
+    byManager[n].total++;if(isWon(r[stk2]))byManager[n].won++;if(isLost(r[stk2]))byManager[n].lost++;});
+  const sorted=Object.entries(byManager).sort((a,b)=>b[1].total-a[1].total);
+  const top=sorted[0]||['—',{total:0}];
+
+  animateVal(document.getElementById('kpiTotal'),totalCnt);
+  renderDelta('kpiTotalDelta',totalCnt,rows,dk,()=>1);
+  animateVal(document.getElementById('kpiCount'),wonCnt);
+  animateVal(document.getElementById('kpiLost'),lostCnt);
+  animateVal(document.getElementById('kpiAvg'),activeCnt);
+  document.getElementById('kpiTop').textContent=top[0];
+  document.getElementById('kpiTopSub').textContent=fmt(top[1].total)+" ta lid";
+  document.getElementById('kpiDate').textContent=currentTab==='today'?today:(currentTab==='yesterday'?'kecha':currentTab==='week'?'oxirgi 7 kun':currentTab==='period'?'tanlangan davr':monthLabel());
+
+  const closedCnt=wonCnt+lostCnt;
+  const conv=closedCnt?(wonCnt/closedCnt*100):0;
+  document.getElementById('kpiConv').textContent=closedCnt?('konversiya '+conv.toFixed(1)+'%'):'—';
+  document.getElementById('lostTag').textContent=fmt(lostCnt)+' ta';
+  const leadsEmptyNote=document.getElementById('leadsEmptyNote');
+  if(leadsEmptyNote)leadsEmptyNote.style.display=(show.length===0)?'block':'none';
+
+  // ---- OTKAZ SABABLARI ----
+  const reasonAgg={};
+  lostRows2.forEach(r=>{const name=r[rk]||"Sabab ko'rsatilmagan";reasonAgg[name]=(reasonAgg[name]||0)+1;});
+  const rSorted=Object.entries(reasonAgg).sort((a,b)=>b[1]-a[1]);
+  const rMax=Math.max(...rSorted.map(e=>e[1]),1);
+  document.getElementById('reasonsList').innerHTML=rSorted.length?rSorted.map(([name,c],i)=>`
+    <div class="reason">
+      <div class="reason-top">
+        <span class="reason-name">${esc(name)}</span>
+        <span class="reason-val" style="color:${RPAL[i%RPAL.length]}">${fmt(c)}</span>
+      </div>
+      <div class="reason-track"><div class="reason-fill" style="width:${Math.max(6,c/rMax*100)}%;background:${RPAL[i%RPAL.length]}"></div></div>
+      <div class="reason-pct">${lostCnt?((c/lostCnt)*100).toFixed(1):0}%</div>
+    </div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--text3);font-size:12.5px">Otkaz yo\'q</div>';
+
+  // ---- KANAL DONUT ----
+  const byChannel={};
+  show.forEach(r=>{const n=r[kk]||'—';byChannel[n]=(byChannel[n]||0)+1;});
+  const chData=Object.entries(byChannel).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('donutCenter').textContent=fmt(totalCnt);
+  document.getElementById('donutTag').textContent=chData.length+' kanal';
+  const dCtx=document.getElementById('donutChart').getContext('2d');
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(dCtx,{type:'doughnut',
+    data:{labels:chData.map(e=>e[0]),datasets:[{data:chData.map(e=>e[1]||0.001),
+      backgroundColor:chData.map((_,i)=>PAL[i%PAL.length]),borderColor:'#fff',borderWidth:3,hoverOffset:8}]},
+    options:{responsive:false,cutout:'72%',animation:{animateRotate:true,duration:900},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed)+' ta'}}}}});
+  document.getElementById('donutLegend').innerHTML=chData.map((e,i)=>`
+    <div class="legend-item">
+      <div class="legend-left"><div class="legend-dot" style="background:${PAL[i%PAL.length]}"></div>${esc(e[0])}</div>
+      <div class="legend-val" style="color:${PAL[i%PAL.length]}">${fmt(e[1])}</div>
+    </div>`).join('');
+
+  // ---- MENEJER BAR ----
+  const bN=sorted.map(e=>e[0]),bC=sorted.map(e=>e[1].total);
+  const bCtx=document.getElementById('barChart').getContext('2d');
+  if(barChart)barChart.destroy();
+  barChart=new Chart(bCtx,{type:'bar',
+    data:{labels:bN,datasets:[{data:bC,backgroundColor:bN.map((_,i)=>PAL[i%PAL.length]+'d5'),
+      borderRadius:7,maxBarThickness:42}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10},maxRotation:35}},
+        y:{beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- OYLIK DINAMIKA ----
+  const sM={};
+  rows.forEach(r=>{const d=new Date(r[dk]);if(isNaN(d))return;const n=r[mnk]||'—';
+    if(!sM[n])sM[n]=new Array(12).fill(0);sM[n][d.getMonth()]++;});
+  const aM=[...new Set(rows.map(r=>{const d=new Date(r[dk]);return isNaN(d)?-1:d.getMonth();}).filter(m=>m>=0))].sort((a,b)=>a-b);
+  if(!aM.length)for(let i=0;i<12;i++)aM.push(i);
+  const mS=Object.keys(sM).filter(n=>sM[n].some(v=>v>0));
+  const mCtx=document.getElementById('monthlyChart').getContext('2d');
+  if(monthlyChart)monthlyChart.destroy();
+  monthlyChart=new Chart(mCtx,{type:'bar',
+    data:{labels:aM.map(i=>MONTHS[i]),datasets:mS.map((n,i)=>({label:n,data:aM.map(mi=>sM[n][mi]),
+      backgroundColor:PAL[i%PAL.length]+'d5',borderRadius:5,maxBarThickness:44}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:mS.length>1,position:'bottom',labels:{color:'#5a6684',font:{size:10.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:12}},
+        tooltip:{...tt,callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{stacked:true,grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10.5}}},
+        y:{stacked:true,beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- MENEJER JADVALI ----
+  const maxT=Math.max(...sorted.map(e=>e[1].total),1);
+  const rc=['r1','r2','r3'];
+  document.getElementById('tableBody').innerHTML=sorted.map(([name,{total,won,lost}],i)=>{
+    const closed=won+lost;const mConv=closed?((won/closed)*100).toFixed(0):'0';
+    return `
+    <div class="trow" style="animation-delay:${Math.min(i*.03,.5)}s">
+      <div>
+        <div class="tname"><span class="rank ${i<3&&total>0?rc[i]:'rn'}">${i+1}</span>${esc(name)}</div>
+        ${total>0?`<div class="mini-bar" style="margin-left:34px"><div class="mini-fill" style="width:${Math.max(5,total/maxT*100)}%;background:${PAL[i%PAL.length]}"></div></div>`:''}
+      </div>
+      <div class="tcount">${fmt(total)}</div>
+      <div class="tsum ${won>0?'pos':'zero'}">${fmt(won)}</div>
+      <div class="tsum" style="color:var(--rose)">${fmt(lost)}</div>
+      <div class="tsum" style="color:var(--green)">${mConv}%</div>
+    </div>`;}).join('');
+
+  renderCountries(show,ctk);
+}
+
+function renderCountries(show,ctk){
+  const byCountry={};
+  show.forEach(r=>{const n=(r[ctk]||"Ko'rsatilmagan").trim()||"Ko'rsatilmagan";byCountry[n]=(byCountry[n]||0)+1;});
+  const sortedC=Object.entries(byCountry).sort((a,b)=>b[1]-a[1]);
+  const total=sortedC.reduce((a,e)=>a+e[1],0);
+  const el=document.getElementById('countryTag');
+  if(el)el.textContent=currentTab==='today'?'bugun':currentTab==='week'?'hafta':currentTab==='month'?'oy':'davr';
+
+  const top4=sortedC.slice(0,4);
+  const kpisEl=document.getElementById('countryKpis');
+  if(kpisEl){
+    kpisEl.innerHTML=top4.map(([name,c],i)=>{
+      const color=PAL[i%PAL.length];
+      const icon=COUNTRY_ICONS[name]||'🌍';
+      const pct=total?Math.round(c/total*100):0;
+      return `
+      <div style="background:${color}12;border:1.5px solid ${color}30;border-radius:12px;padding:18px;transition:transform .2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+        <div style="font-size:22px;margin-bottom:8px;">${icon}</div>
+        <div style="font-size:10.5px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">${esc(name)}</div>
+        <div style="font-size:26px;font-weight:800;color:${color};letter-spacing:-0.03em;">${fmt(c)}</div>
+        <div style="font-size:11.5px;color:var(--text3);margin-top:4px;">lid · ${pct}%</div>
+        <div style="margin-top:10px;height:5px;background:${color}20;border-radius:3px;overflow:hidden;">
+          <div style="height:100%;background:${color};border-radius:3px;width:${pct}%;transition:width 1s cubic-bezier(.16,1,.3,1)"></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const cbEl=document.getElementById('countryBarChart');
+  if(!cbEl)return;
+  const cbCtx=cbEl.getContext('2d');
+  if(countryBarChart)countryBarChart.destroy();
+  countryBarChart=new Chart(cbCtx,{
+    type:'bar',
+    data:{labels:sortedC.map(e=>e[0]),datasets:[{data:sortedC.map(e=>e[1]),
+      backgroundColor:sortedC.map((_,i)=>PAL[i%PAL.length]+'d0'),borderRadius:6,maxBarThickness:44}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed.y)+' ta lid'}}},
+      scales:{
+        x:{grid:{display:false},border:{display:false},ticks:{color:'#94a0bd',font:{size:10.5},maxRotation:30}},
+        y:{beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#94a0bd',font:{size:10,family:'JetBrains Mono'}}}
+      }
+    }
+  });
+}
+
+async function loadData(){
+  setStatus('load','Yuklanmoqda');
+  const usingDemo=!CSV_LEADS||CSV_LEADS.indexOf('PASTE_YOUR')===0;
+  if(usingDemo){
+    const s=parseCSV(LEADS_DEMO);leadsH=s.h;leadsRows=s.rows;
+    if(currentPage==='leads')renderAll();
+    setStatus('load','Demo rejim (Sheets ulanmagan)');
+    document.getElementById('lastUpdated').textContent='Demo ma\'lumot ko\'rsatilmoqda';
+    return;
+  }
+  try{
+    const r1=await fetch(CSV_LEADS,{cache:'no-store'});
+    if(!r1.ok)throw new Error('HTTP '+r1.status);
+    const t1=await r1.text();
+    if(!t1||t1.trim().startsWith('<'))throw new Error('CSV emas');
+    const s=parseCSV(t1);leadsH=s.h;leadsRows=s.rows;
+    renderAll();
+    setStatus('ok','Ulangan');
+    document.getElementById('lastUpdated').textContent='Yangilandi: '+new Date().toLocaleTimeString('uz-UZ');
+    if(currentPage==='leads')hideErrorBanner();
+  }catch(e){
+    setStatus('err','Xatolik');
+    document.getElementById('lastUpdated').textContent="Ulanib bo'lmadi";
+    if(currentPage==='leads')showErrorBanner("Lidlar ma'lumotlari yuklanmadi. Internet aloqasi yoki Google Sheets havolasini tekshiring.", loadData);
+  }
+}
+
+function showErrorBanner(message, retryFn){
+  const el=document.getElementById('errorBanner');
+  el.style.display='flex';
+  el.innerHTML=`<span>⚠️ ${message}</span>`;
+  const btn=document.createElement('button');
+  btn.textContent='Qayta urinish';
+  btn.onclick=()=>{btn.textContent='Yuklanmoqda...';btn.disabled=true;retryFn();};
+  el.appendChild(btn);
+}
+function hideErrorBanner(){
+  document.getElementById('errorBanner').style.display='none';
+}
+
+// ================== AI SUHBATLAR SAHIFASI ==================
+const SENT_COLOR=v=>{
+  if(/ijobiy|positive|good|яхши/i.test(v))return '#00b87c';
+  if(/salbiy|negative|bad|yomon/i.test(v))return '#f04870';
+  return '#f5a524';
+};
+const isResolved=v=>/hal qilindi|resolved|ha$/i.test((v||'').toString().trim());
+const isEscalated=v=>/menejerga|uzatildi|escalated/i.test((v||'').toString().trim());
+const isVoice=v=>/ovoz|voice|audio/i.test((v||'').toString().trim());
+
+function toggleAudio(btn){
+  const wrap=btn.nextElementSibling;
+  if(!wrap)return;
+  if(wrap.dataset.loaded==='1'){
+    const audio=wrap.querySelector('audio');
+    const showing=wrap.style.display!=='none';
+    if(showing){wrap.style.display='none';if(audio)audio.pause();btn.textContent="🎧 Ovozli xabarni eshitish";}
+    else{wrap.style.display='block';btn.textContent="🎧 Yashirish";if(audio)audio.play();}
+    return;
+  }
+  wrap.innerHTML=`<audio controls autoplay><source src="${btn.dataset.url}"></audio>`;
+  wrap.dataset.loaded='1';
+  wrap.style.display='block';
+  btn.textContent="🎧 Yashirish";
+}
+
+async function loadChats(){
+  const usingDemo=!CSV_CHATS||CSV_CHATS.indexOf('PASTE_YOUR')===0;
+  if(usingDemo){
+    const {h,rows}=parseCSV(CHATS_DEMO);
+    chatsH=h;chatsRows=rows;
+    if(currentPage==='chats')renderChats();
+    return;
+  }
+  try{
+    const res=await fetch(CSV_CHATS,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const text=await res.text();
+    if(!text||text.trim().startsWith('<'))throw new Error('CSV emas');
+    const {h,rows}=parseCSV(text);
+    chatsH=h;chatsRows=rows;
+    if(currentPage==='chats')renderChats();
+    if(currentPage==='chats')hideErrorBanner();
+  }catch(e){
+    console.error('Suhbatlar CSV xatosi:',e);
+    if(currentPage==='chats')showErrorBanner("Suhbatlar ma'lumotlari yuklanmadi. Internet aloqasi yoki Google Sheets havolasini tekshiring.", loadChats);
+  }
+}
+
+function renderChats(){
+  const h=chatsH,rows=chatsRows;
+  if(!rows.length)return;
+  const dk=h.find(x=>/sana/i.test(x))||h[0];
+  const kk=h.find(x=>/kanal/i.test(x))||h[1];
+  const uk=h.find(x=>/foydalanuvchi/i.test(x))||h[2];
+  const typek=h.find(x=>/xabar.?turi|turi/i.test(x))||h[3];
+  const sck=h.find(x=>/baho/i.test(x))||h[4];
+  const stk=h.find(x=>/holat/i.test(x))||h[5];
+  const senk=h.find(x=>/sentiment/i.test(x))||h[6];
+  const lk=h.find(x=>/lead/i.test(x))||h[7];
+  const xk=h.find(x=>/xulosa/i.test(x))||h[8];
+  const prk=h.find(x=>/muammo/i.test(x))||h[9];
+  const audk=h.find(x=>/url|ovoz/i.test(x))||h[10];
+
+  const today=new Date().toLocaleDateString('sv-SE');
+  const show=rows.filter(r=>inRange(r[dk]));
+  const totalChats=show.length;
+  renderDelta('kpiChatsTotalDelta',totalChats,rows,dk,()=>1);
+  const chatsEmptyNote=document.getElementById('chatsEmptyNote');
+  if(chatsEmptyNote)chatsEmptyNote.style.display=(totalChats===0)?'block':'none';
+
+  const resolvedChats=show.filter(r=>isResolved(r[stk])).length;
+  const escalatedChats=show.filter(r=>isEscalated(r[stk])).length;
+  const resolvedRate=totalChats?(resolvedChats/totalChats*100):0;
+  const negativeChats=show.filter(r=>/salbiy|negative/i.test(r[senk]||'')).length;
+  const scores=show.map(r=>num(r[sck])).filter(v=>v>0);
+  const avgScore=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0;
+
+  const telegramChats=show.filter(r=>/telegram/i.test(r[kk]||'')).length;
+  const whatsappChats=show.filter(r=>/whatsapp/i.test(r[kk]||'')).length;
+  const instagramChats=show.filter(r=>/instagram/i.test(r[kk]||'')).length;
+  const voiceChats=show.filter(r=>isVoice(r[typek])).length;
+  const lowScoreChats=show.filter(r=>num(r[sck])>0&&num(r[sck])<CONFIG.lowScoreThreshold).length;
+
+  document.getElementById('kpiChatsTelegram').textContent=fmt(telegramChats);
+  document.getElementById('kpiChatsWhatsapp').textContent=fmt(whatsappChats);
+  document.getElementById('kpiChatsInstagram').textContent=fmt(instagramChats);
+  document.getElementById('kpiChatsLowScore').textContent=fmt(lowScoreChats);
+  document.getElementById('kpiChatsNegative').textContent=fmt(negativeChats);
+  document.getElementById('kpiChatsVoice').textContent=fmt(voiceChats);
+
+  const byChannel={};
+  show.forEach(r=>{const n=r[kk]||'—';if(!byChannel[n])byChannel[n]={c:0,scoreSum:0,scoreN:0,resolved:0};
+    byChannel[n].c++;const sc=num(r[sck]);if(sc>0){byChannel[n].scoreSum+=sc;byChannel[n].scoreN++;}
+    if(isResolved(r[stk]))byChannel[n].resolved++;});
+  const sorted=Object.entries(byChannel).sort((a,b)=>b[1].c-a[1].c);
+  const top=sorted[0]||['—',{c:0}];
+
+  animateVal(document.getElementById('kpiChatsTotal'),totalChats);
+  animateVal(document.getElementById('kpiChatsResolved'),resolvedChats);
+  document.getElementById('kpiChatsResolvedRate').textContent=resolvedRate.toFixed(1)+'%';
+  animateVal(document.getElementById('kpiChatsEscalated'),escalatedChats);
+  document.getElementById('kpiChatsScore').textContent=avgScore?avgScore.toFixed(1):'—';
+  document.getElementById('kpiChatsTop').textContent=top[0];
+  document.getElementById('kpiChatsTopSub').textContent=fmt(top[1].c)+" ta suhbat";
+  document.getElementById('kpiChatsDate').textContent=currentTab==='today'?today:(currentTab==='yesterday'?'kecha':currentTab==='week'?'oxirgi 7 kun':currentTab==='period'?'tanlangan davr':monthLabel());
+
+  // ---- Sentiment donut ----
+  const sentAgg={};
+  show.forEach(r=>{const v=(r[senk]||'Noma\'lum').trim();sentAgg[v]=(sentAgg[v]||0)+1;});
+  const sentSorted=Object.entries(sentAgg).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('donutChatsTag').textContent=sentSorted.length+' tur';
+  const dCtx=document.getElementById('donutChatsChart').getContext('2d');
+  if(donutChatsChart)donutChatsChart.destroy();
+  donutChatsChart=new Chart(dCtx,{type:'doughnut',
+    data:{labels:sentSorted.map(e=>e[0]),datasets:[{data:sentSorted.map(e=>e[1]||0.001),
+      backgroundColor:sentSorted.map(e=>SENT_COLOR(e[0])),borderColor:'#fff',borderWidth:3,hoverOffset:8}]},
+    options:{responsive:false,cutout:'72%',animation:{animateRotate:true,duration:900},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed)+' ta'}}}}});
+  document.getElementById('donutChatsCenter').textContent=fmt(totalChats);
+  document.getElementById('donutChatsLegend').innerHTML=sentSorted.map(([name,c])=>`
+    <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${SENT_COLOR(name)}"></div>${esc(name)}</div><div class="legend-val" style="color:${SENT_COLOR(name)}">${fmt(c)}</div></div>`).join('');
+
+  // ---- Kanal bar ----
+  const bCtx=document.getElementById('barChatsChart').getContext('2d');
+  if(barChatsChart)barChatsChart.destroy();
+  barChatsChart=new Chart(bCtx,{type:'bar',
+    data:{labels:sorted.map(e=>e[0]),datasets:[{data:sorted.map(e=>e[1].c),
+      backgroundColor:sorted.map((_,i)=>PAL[i%PAL.length]+'d5'),borderRadius:7,maxBarThickness:42}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10},maxRotation:35}},
+        y:{beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- Monthly dynamics ----
+  const sM={};
+  rows.forEach(r=>{const d=new Date(r[dk]);if(isNaN(d))return;const n=r[kk]||'—';
+    if(!sM[n])sM[n]=new Array(12).fill(0);sM[n][d.getMonth()]++;});
+  const aM=[...new Set(rows.map(r=>{const d=new Date(r[dk]);return isNaN(d)?-1:d.getMonth();}).filter(m=>m>=0))].sort((a,b)=>a-b);
+  if(!aM.length)for(let i=0;i<12;i++)aM.push(i);
+  const mS=Object.keys(sM).filter(n=>sM[n].some(v=>v>0));
+  const mCtx=document.getElementById('monthlyChatsChart').getContext('2d');
+  if(monthlyChatsChart)monthlyChatsChart.destroy();
+  monthlyChatsChart=new Chart(mCtx,{type:'bar',
+    data:{labels:aM.map(i=>MONTHS[i]),datasets:mS.map((n,i)=>({label:n,data:aM.map(mi=>sM[n][mi]),
+      backgroundColor:PAL[i%PAL.length]+'d5',borderRadius:5,maxBarThickness:44}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:mS.length>1,position:'bottom',labels:{color:'#5a6684',font:{size:10.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:12}},
+        tooltip:{...tt,callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{stacked:true,grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10.5}}},
+        y:{stacked:true,beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- Kanal jadvali ----
+  const maxC=Math.max(...sorted.map(e=>e[1].c),1);
+  const rc=['r1','r2','r3'];
+  document.getElementById('chatsTableBody').innerHTML=sorted.map(([name,{c,scoreSum,scoreN,resolved}],i)=>{
+    const avgSc=scoreN?(scoreSum/scoreN).toFixed(1):'—';
+    const resRate=c?((resolved/c)*100).toFixed(0):'0';
+    return `
+    <div class="trow" style="animation-delay:${Math.min(i*.03,.5)}s">
+      <div>
+        <div class="tname"><span class="rank ${i<3&&c>0?rc[i]:'rn'}">${i+1}</span>${esc(name)}</div>
+        ${c>0?`<div class="mini-bar" style="margin-left:34px"><div class="mini-fill" style="width:${Math.max(5,c/maxC*100)}%;background:${PAL[i%PAL.length]}"></div></div>`:''}
+      </div>
+      <div class="tcount">${fmt(c)}</div>
+      <div class="tsum" style="color:var(--amber)">${avgSc}</div>
+      <div class="tsum ${resolved>0?'pos':'zero'}">${resRate}%</div>
+    </div>`;}).join('');
+
+  // ---- So'nggi suhbatlar ----
+  const filterLabels={all:"💬 Barcha suhbatlar",telegram:"✈️ Telegram",whatsapp:"💚 WhatsApp",instagram:"📷 Instagram",lowscore:"🔻 Past baholi (<50)",negative:"😠 Salbiy suhbatlar",voice:"🎙️ Ovozli xabarlar",resolved:"✅ AI hal qildi",escalated:"⚠️ Menejerga uzatildi"};
+  let filteredShow=show;
+  if(activeChatFilter==='telegram')filteredShow=show.filter(r=>/telegram/i.test(r[kk]||''));
+  else if(activeChatFilter==='whatsapp')filteredShow=show.filter(r=>/whatsapp/i.test(r[kk]||''));
+  else if(activeChatFilter==='instagram')filteredShow=show.filter(r=>/instagram/i.test(r[kk]||''));
+  else if(activeChatFilter==='lowscore')filteredShow=show.filter(r=>num(r[sck])>0&&num(r[sck])<CONFIG.lowScoreThreshold);
+  else if(activeChatFilter==='negative')filteredShow=show.filter(r=>/salbiy|negative/i.test(r[senk]||''));
+  else if(activeChatFilter==='voice')filteredShow=show.filter(r=>isVoice(r[typek]));
+  else if(activeChatFilter==='resolved')filteredShow=show.filter(r=>isResolved(r[stk]));
+  else if(activeChatFilter==='escalated')filteredShow=show.filter(r=>isEscalated(r[stk]));
+
+  document.getElementById('recentChatsTag').textContent=filteredShow.length+' ta';
+  const filterBar=document.getElementById('recentChatsFilterBar');
+  if(activeChatFilter){
+    filterBar.style.display='block';
+    filterBar.innerHTML=`<span class="filter-chip">${filterLabels[activeChatFilter]}<button onclick="setChatFilter('${activeChatFilter}')">✕</button></span>`;
+  }else{
+    filterBar.style.display='none';
+    filterBar.innerHTML='';
+  }
+  document.querySelectorAll('[data-filter]').forEach(el=>{
+    el.classList.toggle('filter-active',el.dataset.filter===activeChatFilter);
+  });
+
+  const CHANNEL_ICON={telegram:'✈️',whatsapp:'💚',instagram:'📷'};
+  const recent=[...filteredShow].sort((a,b)=>new Date(b[dk])-new Date(a[dk])).slice(0,25);
+  document.getElementById('recentChatsList').innerHTML=recent.length?recent.map((r,i)=>{
+    const sc=num(r[sck]);
+    const scColor=sc>=80?'#00b87c':sc>=CONFIG.lowScoreThreshold?'#f5a524':sc>0?'#f04870':'var(--text3)';
+    const sent=(r[senk]||'').trim();
+    const resolved=isResolved(r[stk]);
+    const escalated=isEscalated(r[stk]);
+    const url=(r[audk]||'').trim();
+    const summary=r[xk]||'';
+    const problem=r[prk]||'';
+    const chVal=(r[kk]||'').trim();
+    const chKey=chVal.toLowerCase();
+    const chIcon=CHANNEL_ICON[chKey]||'💬';
+    const lead=(r[lk]||'').trim();
+    return `
+    <div class="callitem" style="animation-delay:${Math.min(i*.02,.4)}s">
+      <div class="callitem-top">
+        <div class="callitem-who"><span class="cw-op">${chIcon} ${esc(chVal||'—')}</span><span class="cw-sep">→</span>${esc(r[uk]||'Foydalanuvchi')}</div>
+        <div class="callitem-meta">${esc(r[dk]||'')}</div>
+      </div>
+      <div class="callitem-badges">
+        ${resolved?`<span class="badge" style="background:#00b87c18;color:#00b87c">✅ AI hal qildi</span>`:''}
+        ${escalated?`<span class="badge" style="background:#f0487018;color:#f04870">⚠️ Menejerga uzatildi</span>`:''}
+        ${sc>0?`<span class="badge" style="background:${scColor}18;color:${scColor}">⭐ ${sc}/100</span>`:''}
+        ${sent?`<span class="badge" style="background:${SENT_COLOR(sent)}18;color:${SENT_COLOR(sent)}">${esc(sent)}</span>`:''}
+        ${lead?`<span class="badge" style="background:var(--indigo-l);color:var(--indigo)">${esc(lead)}</span>`:''}
+        ${isVoice(r[typek])?`<span class="badge" style="background:var(--amber-l);color:var(--amber)">🎙️ Ovozli</span>`:''}
+      </div>
+      ${summary?`<div class="callitem-summary">${esc(summary)}</div>`:''}
+      ${problem?`<div class="callitem-summary" style="margin-top:4px;color:var(--rose)"><b>Muammo:</b> ${esc(problem)}</div>`:''}
+      ${url?`<button class="callitem-link" data-url="${esc(url)}" onclick="toggleAudio(this)">🎧 Ovozli xabarni eshitish</button><div class="callitem-audio"></div>`:''}
+    </div>`;}).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-size:12.5px">Bu davrda suhbat yo\'q</div>';
+}
+
+const lsLbl=document.getElementById('kpiChatsLowScoreLbl');
+if(lsLbl)lsLbl.textContent=`Past baholi (<${CONFIG.lowScoreThreshold})`;
+const lsLblCalls=document.getElementById('kpiCallsLowScoreLbl');
+if(lsLblCalls)lsLblCalls.textContent=`Past baholi (<${CONFIG.lowScoreThreshold})`;
+
+// ================== QO'NG'IROQLAR SAHIFASI ==================
+function setCallFilter(type){
+  activeCallFilter=(activeCallFilter===type)?null:type;
+  if(callsRows.length)renderCalls();
+  const card=document.getElementById('recentCallsCard');
+  if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function toggleCallAudio(btn){
+  const wrap=btn.nextElementSibling;
+  if(!wrap)return;
+  if(wrap.dataset.loaded==='1'){
+    const audio=wrap.querySelector('audio');
+    const showing=wrap.style.display!=='none';
+    if(showing){wrap.style.display='none';if(audio)audio.pause();btn.textContent="🎧 Yozuvni eshitish";}
+    else{wrap.style.display='block';btn.textContent="🎧 Yashirish";if(audio)audio.play();}
+    return;
+  }
+  wrap.innerHTML=`<audio controls autoplay><source src="${btn.dataset.url}"></audio>`;
+  wrap.dataset.loaded='1';
+  wrap.style.display='block';
+  btn.textContent="🎧 Yashirish";
+}
+const isCallSuccess=v=>/^(ha|ya|yes|true|1|muvaffaqiyatli|success)/i.test((v||'').toString().trim());
+
+async function loadCalls(){
+  const usingDemo=!CSV_CALLS||CSV_CALLS.indexOf('PASTE_YOUR')===0;
+  if(usingDemo){
+    const{h,rows}=parseCSV(CALLS_DEMO);
+    callsH=h;callsRows=rows;
+    if(currentPage==='calls')renderCalls();
+    return;
+  }
+  try{
+    const res=await fetch(CSV_CALLS,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const text=await res.text();
+    if(!text||text.trim().startsWith('<'))throw new Error('CSV emas');
+    const{h,rows}=parseCSV(text);
+    callsH=h;callsRows=rows;
+    if(currentPage==='calls')renderCalls();
+    if(currentPage==='calls')hideErrorBanner();
+  }catch(e){
+    console.error("Qo'ng'iroqlar CSV xatosi:",e);
+    if(currentPage==='calls')showErrorBanner("Qo'ng'iroqlar ma'lumotlari yuklanmadi. Internet aloqasi yoki Google Sheets havolasini tekshiring.", loadCalls);
+  }
+}
+
+function renderCalls(){
+  const h=callsH,rows=callsRows;
+  if(!rows.length)return;
+  const dk=h.find(x=>/sana/i.test(x))||h[0];
+  const nk=h.find(x=>/menejer|operator/i.test(x))||h[1];
+  const mk=h.find(x=>/nomzod|mijoz/i.test(x))||h[2];
+  const tk=h.find(x=>/davomiy/i.test(x))||h[3];
+  const sck=h.find(x=>/baho/i.test(x))||h[4];
+  const sk=h.find(x=>/muvaffaqiy/i.test(x))||h[5];
+  const senk=h.find(x=>/sentiment/i.test(x))||h[6];
+  const lk=h.find(x=>/lead/i.test(x))||h[7];
+  const xk=h.find(x=>/xulosa/i.test(x))||h[8];
+  const prk=h.find(x=>/muammo/i.test(x))||h[9];
+  const uk=h.find(x=>/url|yozib/i.test(x))||h[10];
+  const dirk=h.find(x=>/yo.?nalish|yonalish|direction/i.test(x));
+  const stk=h.find(x=>/holat|status/i.test(x));
+  const mbk=h.find(x=>/manba/i.test(x));
+  const isUnknownSource=r=>{if(!mbk)return false;const v=(r[mbk]||'').trim();return !v||/noma.?lum/i.test(v);};
+
+  const issueCount=r=>{
+    let n=0;
+    if(/salbiy|negative|bad/i.test(r[senk]||''))n++;
+    const iss=(r[prk]||'').trim();
+    if(iss&&!/^yo.?q$/i.test(iss)){n+=iss.split(',').map(s=>s.trim()).filter(Boolean).length;}
+    return n;
+  };
+  const qualityTier=r=>{const n=issueCount(r);return n===0?'ok':n<2?'average':'negative';};
+
+  const today=new Date().toLocaleDateString('sv-SE');
+  const show=rows.filter(r=>inRange(r[dk]));
+  const totalCalls=show.length;
+  renderDelta('kpiCallsTotalDelta',totalCalls,rows,dk,()=>1);
+  const callsEmptyNote=document.getElementById('callsEmptyNote');
+  if(callsEmptyNote)callsEmptyNote.style.display=(totalCalls===0)?'block':'none';
+  const successCalls=show.filter(r=>isCallSuccess(r[sk])).length;
+  const successRate=totalCalls?(successCalls/totalCalls*100):0;
+  const negativeCalls=show.filter(r=>qualityTier(r)==='negative').length;
+  const averageCalls=show.filter(r=>qualityTier(r)==='average').length;
+  const unknownSourceCalls=show.filter(isUnknownSource).length;
+  const scores=show.map(r=>num(r[sck])).filter(v=>v>0);
+  const avgScore=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:0;
+
+  const inCalls=dirk?show.filter(r=>/kirish|incoming|^0$/i.test((r[dirk]||'').trim())).length:0;
+  const outCalls=dirk?show.filter(r=>/chiqish|outgoing|^1$/i.test((r[dirk]||'').trim())).length:0;
+  const missedCalls=stk?show.filter(r=>/ko.?tarilmagan|kotarilmagan|missed/i.test(r[stk]||'')).length:0;
+  document.getElementById('kpiCallsIn').textContent=dirk?fmt(inCalls):'—';
+  document.getElementById('kpiCallsOut').textContent=dirk?fmt(outCalls):'—';
+  document.getElementById('kpiCallsMissed').textContent=stk?fmt(missedCalls):'—';
+  const lowScoreCalls=show.filter(r=>{const answered=!stk||!/ko.?tarilmagan|kotarilmagan|missed/i.test(r[stk]||'');return answered&&num(r[sck])>0&&num(r[sck])<CONFIG.lowScoreThreshold;}).length;
+  document.getElementById('kpiCallsLowScore').textContent=fmt(lowScoreCalls);
+  document.getElementById('kpiCallsAverage').textContent=fmt(averageCalls);
+  document.getElementById('kpiCallsUnknownSource').textContent=fmt(unknownSourceCalls);
+
+  const byMgr={};
+  show.forEach(r=>{const n=r[nk]||'—';if(!byMgr[n])byMgr[n]={c:0,scoreSum:0,scoreN:0,success:0};
+    byMgr[n].c++;const sc=num(r[sck]);if(sc>0){byMgr[n].scoreSum+=sc;byMgr[n].scoreN++;}
+    if(isCallSuccess(r[sk]))byMgr[n].success++;});
+  const sorted=Object.entries(byMgr).sort((a,b)=>b[1].c-a[1].c);
+  const top=sorted[0]||['—',{c:0}];
+
+  animateVal(document.getElementById('kpiCallsTotal'),totalCalls);
+  animateVal(document.getElementById('kpiCallsSuccess'),successCalls);
+  document.getElementById('kpiCallsSuccessRate').textContent=successRate.toFixed(1)+'%';
+  animateVal(document.getElementById('kpiCallsNegative'),negativeCalls);
+  document.getElementById('kpiCallsScore').textContent=avgScore?avgScore.toFixed(1):'—';
+  document.getElementById('kpiCallsTop').textContent=top[0];
+  document.getElementById('kpiCallsTopSub').textContent=fmt(top[1].c)+" ta qo'ng'iroq";
+  document.getElementById('kpiCallsDate').textContent=currentTab==='today'?today:(currentTab==='yesterday'?'kecha':currentTab==='week'?'oxirgi 7 kun':currentTab==='period'?'tanlangan davr':monthLabel());
+
+  // ---- Sentiment donut ----
+  const sentAgg={};
+  show.forEach(r=>{const v=(r[senk]||'Noma\'lum').trim();sentAgg[v]=(sentAgg[v]||0)+1;});
+  const sentSorted=Object.entries(sentAgg).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('donutCallsTag').textContent=sentSorted.length+' tur';
+  const dCtx=document.getElementById('donutCallsChart').getContext('2d');
+  if(donutCallsChart)donutCallsChart.destroy();
+  donutCallsChart=new Chart(dCtx,{type:'doughnut',
+    data:{labels:sentSorted.map(e=>e[0]),datasets:[{data:sentSorted.map(e=>e[1]||0.001),
+      backgroundColor:sentSorted.map(e=>SENT_COLOR(e[0])),borderColor:'#fff',borderWidth:3,hoverOffset:8}]},
+    options:{responsive:false,cutout:'72%',animation:{animateRotate:true,duration:900},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed)+' ta'}}}}});
+  document.getElementById('donutCallsCenter').textContent=fmt(totalCalls);
+  document.getElementById('donutCallsLegend').innerHTML=sentSorted.map(([name,c])=>`
+    <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${SENT_COLOR(name)}"></div>${esc(name)}</div><div class="legend-val" style="color:${SENT_COLOR(name)}">${fmt(c)}</div></div>`).join('');
+
+  // ---- Menejer bar ----
+  const bCtx=document.getElementById('barCallsChart').getContext('2d');
+  if(barCallsChart)barCallsChart.destroy();
+  barCallsChart=new Chart(bCtx,{type:'bar',
+    data:{labels:sorted.map(e=>e[0]),datasets:[{data:sorted.map(e=>e[1].c),
+      backgroundColor:sorted.map((_,i)=>PAL[i%PAL.length]+'d5'),borderRadius:7,maxBarThickness:42}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10},maxRotation:35}},
+        y:{beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- Oylik dinamika ----
+  const sM={};
+  rows.forEach(r=>{const d=new Date(r[dk]);if(isNaN(d))return;const n=r[nk]||'—';
+    if(!sM[n])sM[n]=new Array(12).fill(0);sM[n][d.getMonth()]++;});
+  const aM=[...new Set(rows.map(r=>{const d=new Date(r[dk]);return isNaN(d)?-1:d.getMonth();}).filter(m=>m>=0))].sort((a,b)=>a-b);
+  if(!aM.length)for(let i=0;i<12;i++)aM.push(i);
+  const mS=Object.keys(sM).filter(n=>sM[n].some(v=>v>0));
+  const mCtx=document.getElementById('monthlyCallsChart').getContext('2d');
+  if(monthlyCallsChart)monthlyCallsChart.destroy();
+  monthlyCallsChart=new Chart(mCtx,{type:'bar',
+    data:{labels:aM.map(i=>MONTHS[i]),datasets:mS.map((n,i)=>({label:n,data:aM.map(mi=>sM[n][mi]),
+      backgroundColor:PAL[i%PAL.length]+'d5',borderRadius:5,maxBarThickness:44}))},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:mS.length>1,position:'bottom',labels:{color:'#5a6684',font:{size:10.5,weight:'500'},boxWidth:8,boxHeight:8,usePointStyle:true,pointStyle:'circle',padding:12}},
+        tooltip:{...tt,callbacks:{label:c=>' '+c.dataset.label+': '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{stacked:true,grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10.5}}},
+        y:{stacked:true,beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- Menejer jadvali ----
+  const maxC=Math.max(...sorted.map(e=>e[1].c),1);
+  const rc=['r1','r2','r3'];
+  document.getElementById('callsTableBody').innerHTML=sorted.map(([name,{c,scoreSum,scoreN,success}],i)=>{
+    const avgSc=scoreN?(scoreSum/scoreN).toFixed(1):'—';
+    const succRate=c?((success/c)*100).toFixed(0):'0';
+    return `
+    <div class="trow" style="animation-delay:${Math.min(i*.03,.5)}s">
+      <div>
+        <div class="tname"><span class="rank ${i<3&&c>0?rc[i]:'rn'}">${i+1}</span>${esc(name)}</div>
+        ${c>0?`<div class="mini-bar" style="margin-left:34px"><div class="mini-fill" style="width:${Math.max(5,c/maxC*100)}%;background:${PAL[i%PAL.length]}"></div></div>`:''}
+      </div>
+      <div class="tcount">${fmt(c)}</div>
+      <div class="tsum" style="color:var(--amber)">${avgSc}</div>
+      <div class="tsum ${success>0?'pos':'zero'}">${succRate}%</div>
+    </div>`;}).join('');
+
+  // ---- So'nggi qo'ng'iroqlar ----
+  const filterLabels={all:"📞 Barcha qo'ng'iroqlar",success:"✅ Muvaffaqiyatli",in:"↘️ Kirish",out:"↗️ Chiqish",missed:"📵 Ko'tarilmagan",lowscore:"🔻 Past baholi (<50)",negative:"⚠️ Salbiy suhbatlar",average:"🟡 O'rtacha suhbatlar",unknownsource:"❓ Manba noma'lum"};
+  let filteredShow=show;
+  if(activeCallFilter==='success')filteredShow=show.filter(r=>isCallSuccess(r[sk]));
+  else if(activeCallFilter==='in')filteredShow=show.filter(r=>dirk&&/kirish|incoming|^0$/i.test((r[dirk]||'').trim()));
+  else if(activeCallFilter==='out')filteredShow=show.filter(r=>dirk&&/chiqish|outgoing|^1$/i.test((r[dirk]||'').trim()));
+  else if(activeCallFilter==='missed')filteredShow=show.filter(r=>stk&&/ko.?tarilmagan|kotarilmagan|missed/i.test(r[stk]||''));
+  else if(activeCallFilter==='lowscore')filteredShow=show.filter(r=>{const answered=!stk||!/ko.?tarilmagan|kotarilmagan|missed/i.test(r[stk]||'');return answered&&num(r[sck])>0&&num(r[sck])<CONFIG.lowScoreThreshold;});
+  else if(activeCallFilter==='negative')filteredShow=show.filter(r=>qualityTier(r)==='negative');
+  else if(activeCallFilter==='average')filteredShow=show.filter(r=>qualityTier(r)==='average');
+  else if(activeCallFilter==='unknownsource')filteredShow=show.filter(isUnknownSource);
+
+  document.getElementById('recentCallsTag').textContent=filteredShow.length+' ta';
+  const filterBar=document.getElementById('recentCallsFilterBar');
+  if(activeCallFilter){
+    filterBar.style.display='block';
+    filterBar.innerHTML=`<span class="filter-chip">${filterLabels[activeCallFilter]}<button onclick="setCallFilter('${activeCallFilter}')">✕</button></span>`;
+  }else{
+    filterBar.style.display='none';
+    filterBar.innerHTML='';
+  }
+  document.querySelectorAll('#page-calls [data-filter]').forEach(el=>{
+    el.classList.toggle('filter-active',el.dataset.filter===activeCallFilter);
+  });
+
+  const recent=[...filteredShow].sort((a,b)=>new Date(b[dk])-new Date(a[dk])).slice(0,25);
+  document.getElementById('recentCallsList').innerHTML=recent.length?recent.map((r,i)=>{
+    const sc=num(r[sck]);
+    const scColor=sc>=80?'#00b87c':sc>=CONFIG.lowScoreThreshold?'#f5a524':sc>0?'#f04870':'var(--text3)';
+    const sent=(r[senk]||'').trim();
+    const succ=isCallSuccess(r[sk]);
+    const url=(r[uk]||'').trim();
+    const summary=r[xk]||'';
+    const problem=r[prk]||'';
+    const dirVal=dirk?(r[dirk]||'').trim():'';
+    const isIn=/kirish|incoming|^0$/i.test(dirVal);
+    const isOut=/chiqish|outgoing|^1$/i.test(dirVal);
+    const isMissed=stk&&/ko.?tarilmagan|kotarilmagan|missed/i.test(r[stk]||'');
+    const srcVal=mbk?(r[mbk]||'').trim():'';
+    const srcUnknown=isUnknownSource(r);
+    return `
+    <div class="callitem" style="animation-delay:${Math.min(i*.02,.4)}s">
+      <div class="callitem-top">
+        <div class="callitem-who"><span class="cw-op">${esc(r[nk]||'—')}</span><span class="cw-sep">→</span>${esc(r[mk]||'Nomzod')}</div>
+        <div class="callitem-meta">${esc(r[dk]||'')}${r[tk]?' · '+fmtDur(num(r[tk])/60):''}</div>
+      </div>
+      <div class="callitem-badges">
+        ${isMissed?`<span class="badge" style="background:#f0487018;color:#f04870">📵 Ko'tarilmagan</span>`:''}
+        ${isIn?`<span class="badge" style="background:var(--indigo-l);color:var(--indigo)">↘️ Kirish</span>`:''}
+        ${isOut?`<span class="badge" style="background:var(--violet-l);color:var(--violet)">↗️ Chiqish</span>`:''}
+        ${sc>0?`<span class="badge" style="background:${scColor}18;color:${scColor}">⭐ ${sc}/100</span>`:''}
+        ${sent?`<span class="badge" style="background:${SENT_COLOR(sent)}18;color:${SENT_COLOR(sent)}">${esc(sent)}</span>`:''}
+        ${!isMissed?`<span class="badge" style="background:${succ?'#00b87c18':'#f0487018'};color:${succ?'#00b87c':'#f04870'}">${succ?'✅ Muvaffaqiyatli':'✕ Muvaffaqiyatsiz'}</span>`:''}
+        ${r[lk]?`<span class="badge" style="background:var(--indigo-l);color:var(--indigo)">${esc(r[lk])}</span>`:''}
+        ${srcUnknown?`<span class="badge" style="background:#f0487018;color:#f04870">❓ Manba noma'lum</span>`:(srcVal?`<span class="badge" style="background:var(--amber-l);color:var(--amber)">📍 ${esc(srcVal)}</span>`:'')}
+      </div>
+      ${summary?`<div class="callitem-summary">${esc(summary)}</div>`:''}
+      ${problem?`<div class="callitem-summary" style="margin-top:4px;color:var(--rose)"><b>Muammo:</b> ${esc(problem)}</div>`:''}
+      ${url?`<button class="callitem-link" data-url="${esc(url)}" onclick="toggleCallAudio(this)">🎧 Yozuvni eshitish</button><div class="callitem-audio"></div>`:''}
+    </div>`;}).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-size:12.5px">Bu davrda qo\'ng\'iroq yo\'q</div>';
+}
+
+// ================== JAVOB KUTILMOQDA (SLA) SAHIFASI ==================
+function setPendingFilter(type){
+  activePendingFilter=(activePendingFilter===type)?null:type;
+  if(pendingRows.length)renderPending();
+  const card=document.getElementById('pendingListCard');
+  if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function fmtWait(mins){
+  if(mins<60)return Math.round(mins)+' daq';
+  const h=Math.floor(mins/60),m=Math.round(mins%60);
+  if(h<24)return h+' soat '+m+' daq';
+  const d=Math.floor(h/24),rh=h%24;
+  return d+' kun '+rh+' soat';
+}
+function detectSource(name){
+  const n=(name||'').toLowerCase();
+  if(/instagram/.test(n))return{label:'Instagram',icon:'📷',color:'#9b5ef5'};
+  if(/facebook/.test(n))return{label:'Facebook',icon:'📘',color:'#3b82f6'};
+  if(/telegram/.test(n))return{label:'Telegram',icon:'✈️',color:'#5a5df0'};
+  if(/whatsapp/.test(n))return{label:'WhatsApp',icon:'💚',color:'#00b87c'};
+  return{label:"amoCRM / Boshqa",icon:'💼',color:'#f5a524'};
+}
+async function loadPending(){
+  const usingDemo=!CSV_PENDING||CSV_PENDING.indexOf('PASTE_YOUR')===0;
+  if(usingDemo){
+    const{h,rows}=parseCSV(buildPendingDemo());
+    pendingH=h;pendingRows=rows;
+    if(currentPage==='pending')renderPending();
+    return;
+  }
+  try{
+    const res=await fetch(CSV_PENDING,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const text=await res.text();
+    if(!text||text.trim().startsWith('<'))throw new Error('CSV emas');
+    const{h,rows}=parseCSV(text);
+    pendingH=h;pendingRows=rows;
+    if(currentPage==='pending')renderPending();
+    if(currentPage==='pending')hideErrorBanner();
+  }catch(e){
+    console.error("Javob kutilmoqda CSV xatosi:",e);
+    if(currentPage==='pending')showErrorBanner("Javob kutilmoqda ma'lumotlari yuklanmadi. Internet aloqasi yoki Google Sheets havolasini tekshiring.", loadPending);
+  }
+}
+function renderPending(){
+  const h=pendingH,rows=pendingRows;
+  if(!rows.length)return;
+  const lk=h.find(x=>/lidnomi|lid.?nomi/i.test(x))||h[0];
+  const tk=h.find(x=>/yaratilgan|vaqt/i.test(x))||h[1];
+  const mk=h.find(x=>/menejer|operator/i.test(x))||h[2];
+  const stk=h.find(x=>/holat/i.test(x))||h[3];
+
+  const nowSec=Date.now()/1000;
+  const enriched=rows.map(r=>{
+    const created=num(r[tk]);
+    const waitMin=created>0?Math.max(0,(nowSec-created)/60):0;
+    const isUnassigned=/tayinlanmagan|unassigned/i.test(r[mk]||'');
+    const src=detectSource(r[lk]);
+    return{...r,_waitMin:waitMin,_unassigned:isUnassigned,_src:src};
+  });
+  const show=enriched.filter(r=>/kutilmoqda|waiting|pending/i.test(r[stk]||'kutilmoqda'));
+
+  const pendingEmptyNote=document.getElementById('pendingEmptyNote');
+  if(pendingEmptyNote)pendingEmptyNote.style.display=(show.length===0)?'block':'none';
+
+  const total=show.length;
+  const unassigned=show.filter(r=>r._unassigned).length;
+  const critical=show.filter(r=>r._waitMin>=60).length;
+  const avgWait=total?show.reduce((a,r)=>a+r._waitMin,0)/total:0;
+  const maxRow=show.reduce((a,r)=>(!a||r._waitMin>a._waitMin)?r:a,null);
+
+  animateVal(document.getElementById('kpiPendingTotal'),total);
+  animateVal(document.getElementById('kpiPendingUnassigned'),unassigned);
+  animateVal(document.getElementById('kpiPendingCritical'),critical);
+  document.getElementById('kpiPendingAvg').textContent=total?fmtWait(avgWait):'—';
+  document.getElementById('kpiPendingMax').textContent=maxRow?fmtWait(maxRow._waitMin):'—';
+  document.getElementById('kpiPendingMaxSub').textContent=maxRow?esc(maxRow[lk]||'—'):'—';
+
+  // ---- Manba donut ----
+  const srcAgg={};
+  show.forEach(r=>{const s=r._src.label;if(!srcAgg[s])srcAgg[s]={c:0,color:r._src.color};srcAgg[s].c++;});
+  const srcSorted=Object.entries(srcAgg).sort((a,b)=>b[1].c-a[1].c);
+  document.getElementById('donutPendingTag').textContent=srcSorted.length+' manba';
+  document.getElementById('donutPendingCenter').textContent=fmt(total);
+  const dCtx=document.getElementById('donutPendingChart').getContext('2d');
+  if(donutPendingChart)donutPendingChart.destroy();
+  donutPendingChart=new Chart(dCtx,{type:'doughnut',
+    data:{labels:srcSorted.map(e=>e[0]),datasets:[{data:srcSorted.map(e=>e[1].c||0.001),
+      backgroundColor:srcSorted.map(e=>e[1].color),borderColor:'#fff',borderWidth:3,hoverOffset:8}]},
+    options:{responsive:false,cutout:'72%',animation:{animateRotate:true,duration:900},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed)+' ta'}}}}});
+  document.getElementById('donutPendingLegend').innerHTML=srcSorted.map(([name,v])=>`
+    <div class="legend-item"><div class="legend-left"><div class="legend-dot" style="background:${v.color}"></div>${esc(name)}</div><div class="legend-val" style="color:${v.color}">${fmt(v.c)}</div></div>`).join('');
+
+  // ---- Menejer bar ----
+  const byMgr={};
+  show.forEach(r=>{const n=r._unassigned?"Tayinlanmagan":(r[mk]||'—');byMgr[n]=(byMgr[n]||0)+1;});
+  const mgrSorted=Object.entries(byMgr).sort((a,b)=>b[1]-a[1]);
+  const bCtx=document.getElementById('barPendingChart').getContext('2d');
+  if(barPendingChart)barPendingChart.destroy();
+  barPendingChart=new Chart(bCtx,{type:'bar',
+    data:{labels:mgrSorted.map(e=>e[0]),datasets:[{data:mgrSorted.map(e=>e[1]),
+      backgroundColor:mgrSorted.map(([n])=>n==="Tayinlanmagan"?'#f04870d5':'#5a5df0d5'),borderRadius:7,maxBarThickness:42}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...tt,callbacks:{label:c=>' '+fmt(c.parsed.y)+' ta'}}},
+      scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#96a2bf',font:{size:10},maxRotation:35}},
+        y:{beginAtZero:true,grid:{color:'#f0f3f9'},border:{display:false},ticks:{color:'#96a2bf',font:{size:10,family:'JetBrains Mono'}}}}}});
+
+  // ---- Ro'yxat ----
+  const filterLabels={unassigned:"🚫 Tayinlanmagan",critical:"🔥 1 soatdan ko'p kutgan"};
+  let filteredShow=show;
+  if(activePendingFilter==='unassigned')filteredShow=show.filter(r=>r._unassigned);
+  else if(activePendingFilter==='critical')filteredShow=show.filter(r=>r._waitMin>=60);
+
+  document.getElementById('pendingListTag').textContent=filteredShow.length+' ta';
+  const filterBar=document.getElementById('pendingFilterBar');
+  if(activePendingFilter){
+    filterBar.style.display='block';
+    filterBar.innerHTML=`<span class="filter-chip">${filterLabels[activePendingFilter]}<button onclick="setPendingFilter('${activePendingFilter}')">✕</button></span>`;
+  }else{
+    filterBar.style.display='none';
+    filterBar.innerHTML='';
+  }
+  document.querySelectorAll('#page-pending [data-filter]').forEach(el=>{
+    el.classList.toggle('filter-active',el.dataset.filter===activePendingFilter);
+  });
+
+  const sortedList=[...filteredShow].sort((a,b)=>b._waitMin-a._waitMin);
+  document.getElementById('pendingList').innerHTML=sortedList.length?sortedList.map((r,i)=>{
+    const waitColor=r._waitMin>=60?'#f04870':r._waitMin>=15?'#f5a524':'#00b87c';
+    const waitBg=r._waitMin>=60?'#f0487018':r._waitMin>=15?'#fff5e4':'#e2fbf2';
+    return `
+    <div class="callitem" style="animation-delay:${Math.min(i*.02,.4)}s;border-color:${r._waitMin>=60?'#f0487040':'var(--border)'}">
+      <div class="callitem-top">
+        <div class="callitem-who">${r._src.icon} <span class="cw-op">${esc(r._src.label)}</span><span class="cw-sep">→</span>${esc(r[lk]||'—')}</div>
+        <div class="callitem-meta" style="font-weight:700;color:${waitColor}">⏱ ${fmtWait(r._waitMin)}</div>
+      </div>
+      <div class="callitem-badges">
+        <span class="badge" style="background:${waitBg};color:${waitColor}">${r._waitMin>=60?'🔥 SLA buzilgan':r._waitMin>=15?'⚠️ Kutmoqda':'🟢 Yangi'}</span>
+        ${r._unassigned?`<span class="badge" style="background:#f0487018;color:#f04870">🚫 Tayinlanmagan</span>`:`<span class="badge" style="background:var(--indigo-l);color:var(--indigo)">👤 ${esc(r[mk])}</span>`}
+      </div>
+    </div>`;}).join(''):'<div style="padding:24px;text-align:center;color:var(--text3);font-size:12.5px">Kutayotgan lid yo\'q</div>';
+}
+
+loadData();
+loadChats();
+loadCalls();
+loadPending();
+// Set default period dates
+const _today=new Date().toLocaleDateString('sv-SE');
+const _monthAgo=new Date();_monthAgo.setDate(_monthAgo.getDate()-30);
+const df=document.getElementById('dateFrom');
+const dt=document.getElementById('dateTo');
+if(df)df.value=_monthAgo.toLocaleDateString('sv-SE');
+if(dt)dt.value=_today;
+const mv0=document.getElementById('monthValue');
+if(mv0&&!mv0.value){
+  const _now=new Date();
+  mv0.value=_now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0');
+}
+setInterval(()=>{loadData();loadChats();loadCalls();loadPending();},20000);
+
+// ===== SOFT LIGHT BACKGROUND =====
+(function(){
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H;
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  const blobs=[
+    {x:.12,y:.15,r:340,c:'90,93,240',a:.09,vx:.00006,vy:.00004},
+    {x:.85,y:.25,r:300,c:'0,184,124',a:.08,vx:-.00005,vy:.00006},
+    {x:.65,y:.8,r:380,c:'155,94,245',a:.07,vx:.00004,vy:-.00005},
+    {x:.25,y:.75,r:280,c:'245,165,36',a:.07,vx:-.00006,vy:-.00003},
+    {x:.5,y:.45,r:320,c:'0,184,212',a:.06,vx:.00005,vy:.00005},
+  ];
+  const bubbles=Array.from({length:32},()=>({
+    x:Math.random(),y:Math.random(),r:Math.random()*26+8,
+    vy:-(Math.random()*.00022+.00008),vx:(Math.random()-.5)*.00012,
+    c:['90,93,240','0,184,124','245,165,36','240,72,112','155,94,245','0,184,212'][Math.floor(Math.random()*6)],
+    a:Math.random()*.055+.02,ph:Math.random()*Math.PI*2,ps:Math.random()*.012+.005,
+  }));
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    blobs.forEach(b=>{
+      b.x+=b.vx;b.y+=b.vy;
+      if(b.x<-.15||b.x>1.15)b.vx*=-1;
+      if(b.y<-.15||b.y>1.15)b.vy*=-1;
+      const g=ctx.createRadialGradient(b.x*W,b.y*H,0,b.x*W,b.y*H,b.r);
+      g.addColorStop(0,`rgba(${b.c},${b.a})`);g.addColorStop(1,`rgba(${b.c},0)`);
+      ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    });
+    bubbles.forEach(b=>{
+      b.y+=b.vy;b.x+=b.vx;b.ph+=b.ps;
+      if(b.y<-.06){b.y=1.06;b.x=Math.random();}
+      if(b.x<-.05)b.x=1.05;if(b.x>1.05)b.x=-.05;
+      const a=b.a*(.6+.4*Math.sin(b.ph)),wob=Math.sin(b.ph)*6;
+      ctx.beginPath();ctx.arc(b.x*W+wob,b.y*H,b.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${b.c},${a})`;ctx.fill();
+      ctx.strokeStyle=`rgba(${b.c},${a*1.6})`;ctx.lineWidth=1;ctx.stroke();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
